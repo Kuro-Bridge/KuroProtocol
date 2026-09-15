@@ -1,0 +1,25 @@
+# build outputs
+dist/
+
+# dependencies
+node_modules/
+
+# logs
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# typescript build info
+*.tsbuildinfo
+
+# test coverage
+coverage/
+
+# pnpm store（本地隔离时可能生成）
+.pnpm-store/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/*.local.json
+.vscode/*.code-workspace

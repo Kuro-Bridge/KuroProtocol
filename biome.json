@@ -1,0 +1,125 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "ignoreUnknown": false,
+        "includes": ["src/**/*.{ts,tsx,mts,cts,js,mjs,cjs,jsx}"]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 100
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "preset": "recommended",
+            "correctness": {
+                "noUnresolvedImports": "off",
+                "noUnusedPrivateClassMembers": "error"
+            },
+            "complexity": {
+                "useLiteralKeys": "off",
+                "noUselessUndefinedInitialization": "error",
+                "noForEach": "error",
+                "noExcessiveCognitiveComplexity": {
+                    "level": "error",
+                    "options": {
+                        "maxAllowedComplexity": 15
+                    }
+                }
+            },
+            "style": {
+                "useNamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "strictCase": false,
+                        "conventions": [
+                            {
+                                "selector": {
+                                    "kind": "typeParameter"
+                                },
+                                "formats": ["PascalCase"]
+                            },
+                            {
+                                "selector": {
+                                    "kind": "typeMember"
+                                },
+                                "formats": ["camelCase", "snake_case", "PascalCase"]
+                            },
+                            {
+                                "selector": {
+                                    "kind": "objectLiteralMember"
+                                },
+                                "formats": ["camelCase", "snake_case", "CONSTANT_CASE"]
+                            }
+                        ]
+                    }
+                },
+                "useImportType": "error",
+                "useDefaultParameterLast": "error",
+                "useConsistentArrayType": "error",
+                "useArrayLiterals": "error",
+                "noParameterProperties": "error",
+                "useNodeAssertStrict": "error",
+                "useFilenamingConvention": {
+                    "level": "error",
+                    "options": {
+                        "filenameCases": ["camelCase", "kebab-case"]
+                    }
+                }
+            },
+            "suspicious": {
+                "noEmptyBlockStatements": "error",
+                "useErrorMessage": "error",
+                "noSkippedTests": "error",
+                "noConsole": {
+                    "level": "error",
+                    "options": {
+                        "allow": ["log"]
+                    }
+                }
+            },
+            "performance": {
+                "noAccumulatingSpread": "error",
+                "useTopLevelRegex": "error",
+                "noReExportAll": "error"
+            },
+            "nursery": {
+                "noFloatingPromises": "error"
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/__tests__/**"],
+            "linter": {
+                "rules": {
+                    "performance": {
+                        "useTopLevelRegex": "off"
+                    }
+                }
+            }
+        }
+    ],
+    "javascript": {
+        "formatter": {
+            "quoteStyle": "double",
+            "semicolons": "always",
+            "trailingCommas": "all"
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    }
+}

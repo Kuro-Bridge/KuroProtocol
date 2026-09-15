@@ -1,0 +1,11 @@
+# 单包仓（非 monorepo）：此文件承载 pnpm 11 配置（不声明 packages）。
+# pnpm 构建脚本审批：允许 esbuild postinstall（tsdown / vitest 工具链需要）。
+allowBuilds:
+  esbuild: true
+# pnpm 11.6 实测（主仓验证过的坑）：以下各项放 settings: 嵌套块不生效，必须顶层。
+# verifyDepsBeforeRun=false：关闭运行脚本前的依赖预检。
+verifyDepsBeforeRun: false
+# trustLockfile=true：跳过既有 lockfile 的供应链重校验（minimumReleaseAge 相关误伤）。
+trustLockfile: true
+# 不启用最小发布年龄限制（本仓依赖均为成熟包；如需供应链防护再显式调整）。
+minimumReleaseAge: 0
