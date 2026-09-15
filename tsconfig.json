@@ -1,0 +1,47 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "moduleDetection": "force",
+        "lib": [
+            "ES2020"
+        ],
+        // types 置空：src 禁用一切 Node API（QuickJS 可跑的硬约束，对齐主仓 bridge/protocol）
+        "types": [],
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "noUncheckedIndexedAccess": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "exactOptionalPropertyTypes": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitOverride": true,
+        "allowUnreachableCode": false,
+        "allowUnusedLabels": false,
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "declaration": true,
+        "declarationMap": true,
+        "noEmit": true,
+        "allowImportingTsExtensions": true,
+        "erasableSyntaxOnly": true,
+        // 夹具一致性门禁（src/fixtures.test.ts）静态 import 根目录 fixtures/**/*.json
+        "resolveJsonModule": true
+    },
+    "include": [
+        "src"
+    ]
+}

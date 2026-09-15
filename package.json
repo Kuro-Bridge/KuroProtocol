@@ -1,0 +1,41 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "name": "@kuro-bridge/protocol",
+    "version": "0.4.0",
+    "description": "kurobridge-ws 协议的家：zod schema SSOT + 规格书 + 金样本夹具（包版本 ≡ 协议版本）",
+    "type": "module",
+    "license": "MIT",
+    "files": [
+        "dist"
+    ],
+    "main": "./dist/index.mjs",
+    "module": "./dist/index.mjs",
+    "types": "./dist/index.d.mts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.mts",
+            "import": "./dist/index.mjs"
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsdown",
+        "lint": "biome lint .",
+        "format": "biome format --write .",
+        "check": "biome check . && tsc --noEmit",
+        "fix": "biome check --write . && tsc --noEmit",
+        "test": "vitest run",
+        "test:watch": "vitest"
+    },
+    "dependencies": {
+        "zod": "^4.0.0"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.5.6",
+        "tsdown": "^0.22.14",
+        "typescript": "^7.0.2",
+        "vitest": "^4.1.10"
+    }
+}
