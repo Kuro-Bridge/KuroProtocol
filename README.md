@@ -1,7 +1,7 @@
 # KuroProtocol
 
 kurobridge-ws 协议的家：zod schema SSOT + 对端接入规格书（peer-guide）+ 金样本夹具（fixtures）。
-发布名 `@kuro-bridge/protocol`，**包版本 ≡ 协议版本**（当前 0.4.0）。
+发布名 `@kuro-bridge/protocol`，**包版本 ≡ 协议版本**（版本 SSOT：`src/meta.ts` 的 `PROTOCOL_VERSION`）。
 
 KuroBridge 生态所有实现阵营——主仓 KuroAdapter（全量线）、KuroAdapter-Pure（纯净线，纯 Java）与
 第三方对端——以本仓为契约源：
@@ -9,6 +9,7 @@ KuroBridge 生态所有实现阵营——主仓 KuroAdapter（全量线）、Kur
 - **规格契约**：`docs/peer-guide.md`（跨仓库契约；帧名与字段以 `src/` 的 zod schema 为 SSOT）
 - **物理契约**：`fixtures/v0.4/`（金样本 JSON；消费方按 pin 版本拷贝进测试资源，格式见 `docs/fixtures.md`）
 - **版本演进**：`docs/changelog.md`（协议 0.1→0.4.0 简史 + bump 规则）
+- **决策记录**：`docs/DECISIONS.md`（ADR-001：SSOT 收口、发布线与主仓镜像冻结）
 
 ## 工作流
 
@@ -25,7 +26,12 @@ pnpm build          # tsdown 构建（dist/index.mjs）
 见 [AGENTS.md](AGENTS.md)：四件套同改（schema + peer-guide + fixtures + changelog）、包版本 ≡ 协议版本、
 src 零 Node API。
 
+## 发布状态
+
+本仓**尚未发布**。npm 上现存 `@kuro-bridge/protocol@0.1.0`（2026-09-15）系拆仓前夜从主仓
+`bridge/protocol` 误发的旧线产物（包版本与内嵌协议版本错位、exports 缺 require），处置与
+0.4.0 首发 / deprecate 计划见 `docs/DECISIONS.md` ADR-001。**发布只能从本仓出。**
+
 ## 来源
 
-2026-09-15 自主仓 KuroAdapter（commit `59d3be7`）`bridge/protocol/` 平移拆分，协议内容零改动；
-发布名待 npm org（kuro-bridge）建立后启用（`publishConfig` 已就位）。
+2026-09-15 自主仓 KuroAdapter（commit `59d3be7`）`bridge/protocol/` 平移拆分，协议内容零改动。
