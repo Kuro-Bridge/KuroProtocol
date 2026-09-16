@@ -100,6 +100,6 @@
 
 - client 仅经 core `server.ts` 握手成功日志展示（无则旧格式），未进任何状态或判定——
   「不做行为分支」的实现最小化成立。
-- 对端接入语义沉淀至 `docs/protocol/peer-guide.md`（napukettoqq 册的实现 SSOT），
+- 对端接入语义沉淀至 `docs/peer-guide.md`（napukettoqq 册的实现 SSOT），
   帧目录与本文/schema 逐字段对照一致。
 

@@ -120,7 +120,7 @@ Pure 以「整目录拷贝 + PIN.md 登记（仓路径/协议版本/拷贝日期
 
 1. **PIN.md 不含 commit hash**——无法回答「pin 的是 KuroProtocol 的哪个提交」。建议补记
    `KuroProtocol commit` 字段。
-2. **守卫只数份数、不校验内容**——建议消费方按本仓 `fixtures/SHA256SUMS`（本 ADR 同批新增）
+2. **守卫只数份数、不校验内容**——建议消费方按本仓 `fixtures/v0.4/SHA256SUMS`（本 ADR 同批新增）
    校验拷贝件 hash，拷贝错版本目录时守卫能红。
 3. `ProtocolVersions.java` 人工常量副本（D-08 已登记）三步同步流程维持，PIN 补 hash 后第 1、
    2 步之间增加「校验 SHA256SUMS」半步即可，不引入构建依赖。
