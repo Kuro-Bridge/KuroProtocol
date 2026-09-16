@@ -3,15 +3,15 @@
 > **跨仓库契约声明（KuroProtocol 仓，2026-09-15）**：本文件是跨仓库契约，kurobridge-ws 所有实现阵营
 > （TS / Java / C++）以本文为准；帧名与字段的 SSOT 是本仓 `src/` 的 zod schema，冲突时以 schema 为准
 > 并回改本文。版本演进记录见本仓 `docs/changelog.md`。
-> 注：下文「当前协议版本 0.3.1」为主仓历史行文——本仓 SSOT 已是 **0.4.0**（品牌迁移
-> kurobot-ws → kurobridge-ws，唯一 breaking = 握手子协议字符串，帧形状零变化），详见 `docs/changelog.md`。
-> 正文按主仓 commit `59d3be7` 原样平移、不改写（其中 `bridge/protocol/src` 等相对路径仍指主仓布局）。
+> 注：正文自主仓 commit `59d3be7` 平移；头部版本行已于 2026-09-16 改为指向 SSOT（ADR-001），
+> 其余正文保留平移原样（文中 `bridge/protocol/src` 等相对路径仍指主仓布局，即本仓 `src/` 的镜像）。
 
 > **本文是外部协议端（napukettoqq / 其它实现）实现 kurobridge-ws 客户端的唯一实现依据。**
-> 帧名与字段以 `bridge/protocol/src` 的 zod schema 为 SSOT——本文与 schema 不一致时以
-> schema 为准（发现漂移请修本文并通知仓库方）。协议版本演进记录见该包 `docs/design.md`。
+> 帧名与字段以本仓 `src/` 的 zod schema 为 SSOT——本文与 schema 不一致时以 schema 为准
+> （发现漂移请修本文）。协议版本演进记录见本仓 `docs/changelog.md`。
 >
-> 当前协议版本：**0.3.1**（2026-09-13）。本文覆盖 0.2.0 引入的全部帧与 0.3.0/0.3.1 增量。
+> 当前协议版本：`src/meta.ts` 的 `PROTOCOL_VERSION`（版本 SSOT，包版本 ≡ 协议版本）。
+> 正文帧目录沿用 0.2.0~0.3.1 时点行文，0.4.0（品牌迁移，帧形状零变化）起的增量见 §10 速查表与 changelog。
 
 ## 0. 角色与拓扑
 
@@ -225,10 +225,10 @@
 # 1. WS 升级：GET ws://mc.example.com:25580，头带 Sec-WebSocket-Protocol: kurobridge-ws.v1
 P→ {"header":{"type":"hello","id":"3f9d2c1e-8b4a-4c3e-9a2d-7f1e5b6c8d90"},
     "body":{"peerId":"napuketto-01","platform":"qq","version":"1.0.0",
-            "protocolVersion":"0.3.1","token":"s3cret","client":"napukettoqq/1.0"}}
+            "protocolVersion":"0.4.0","token":"s3cret","client":"napukettoqq/1.0"}}
 S→ {"header":{"type":"hello_ack","id":"3f9d2c1e-8b4a-4c3e-9a2d-7f1e5b6c8d90"},
     "body":{"ok":true,"serverId":"kurobridge-spike","version":"0.1.0",
-            "protocolVersion":"0.3.1","channelBindings":["114514","1919810"]}}
+            "protocolVersion":"0.4.0","channelBindings":["114514","1919810"]}}
 
 # 2. 心跳（周期 5–15s）
 P→ {"header":{"type":"ping","id":"a1b2c3d4-1111-4222-8333-444455556666"},
@@ -277,3 +277,4 @@ S→ close(1001, "server shutdown")   → 对端指数退避重连（§7）
 | 0.2.1 | （IPC 侧 ready.autoRestart，WS 无变化） | 无感 |
 | 0.3.0 | hello.token 鉴权（1008）、command/query 请求族、death 事件、未知帧容忍、主版本兼容协商 | 旧对端可连新服务端（主版本同为 0）；新帧未实现时靠 §5.3 容忍 |
 | 0.3.1 | hello.client 自报身份（可选，仅日志辨识） | 完全可选，无感 |
+| 0.4.0 | **breaking（唯一）**：握手子协议 `kurobot-ws.v1` → `kurobridge-ws.v1`（品牌迁移，帧形状零变化） | 旧名对端握手期直接拒绝（one-name-only）；版本号维度仍 0.x 兼容 |
