@@ -36,7 +36,9 @@ pnpm test               # vitest run（协议单测 + 夹具一致性门禁）
 pnpm build              # tsdown 单文件构建（dist/index.mjs）
 ```
 
-发布（本阶段**不做**）：npm org（kuro-bridge）建立后 `pnpm publish`（`publishConfig.access=public` 已就位）。
+发布：**只能从本仓出**（`pnpm publish`，`publishConfig.access=public` 与 CJS 双格式产物已就位）。
+本仓尚未发布；npm 现存 0.1.0 系拆仓前夜从主仓误发的旧线（两轴错位、exports 缺 require），
+首发 0.4.0 + deprecate 0.1.0 的流程与命令见 `docs/DECISIONS.md` ADR-001（需账号操作，用户执行）。
 
 ## 代码风格（biome 已强制，手动也须遵守）
 
