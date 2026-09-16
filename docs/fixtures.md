@@ -10,9 +10,10 @@
 ```
 fixtures/
 └── v0.4/
-    ├── handshake/    握手链路：成功 / 版本协商拒绝 / token 鉴权拒绝
-    ├── frames/       业务帧：chat 双向、command、query、心跳、bindings_updated
-    └── tolerance/    两段式解析与未知帧容忍：wire 骨架拒绝 / dispatch 拒绝 / 未知帧三分支
+    ├── SHA256SUMS     16 份夹具的 sha256 清单（相对本目录路径，内容校验锚点）
+    ├── handshake/     握手链路：成功 / 版本协商拒绝 / token 鉴权拒绝
+    ├── frames/        业务帧：chat 双向、command、query、心跳、bindings_updated
+    └── tolerance/     两段式解析与未知帧容忍：wire 骨架拒绝 / dispatch 拒绝 / 未知帧三分支
 ```
 
 每份 JSON = 一个场景。目录只随协议版本新增（`fixtures/v0.5/`…），已发布版本目录内的夹具不修改。
@@ -61,4 +62,7 @@ fixtures/
 - 协议任何变更 = src schema + `docs/peer-guide.md` + fixtures + `docs/changelog.md` 同批落地。
 - TS 门禁 `src/fixtures.test.ts` 以**静态 import** 逐份消费（保持 src 零 Node API）——新增夹具
   需在门禁文件登记 import 与期望。
-- 消费方（如 KuroAdapter-Pure）拷贝时在测试资源旁留 pin 记录（来源仓 + 版本 + 日期）。
+- **每个版本目录配一份 `SHA256SUMS`**（新增/修改夹具的同一提交内重新生成）——消费方拷贝后按
+  `sha256sum -c` 校验，拷错版本目录即红。
+- 消费方（如 KuroAdapter-Pure）拷贝时在测试资源旁留 pin 记录（来源仓 + 版本 + 日期 + **来源仓
+  commit hash**），并按 SHA256SUMS 校验拷贝件（建议项，见 DECISIONS.md ADR-001 附录）。
