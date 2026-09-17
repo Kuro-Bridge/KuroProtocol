@@ -124,3 +124,112 @@ Pure 以「整目录拷贝 + PIN.md 登记（仓路径/协议版本/拷贝日期
    校验拷贝件 hash，拷贝错版本目录时守卫能红。
 3. `ProtocolVersions.java` 人工常量副本（D-08 已登记）三步同步流程维持，PIN 补 hash 后第 1、
    2 步之间增加「校验 SHA256SUMS」半步即可，不引入构建依赖。
+
+---
+
+## ADR-002 fixtures 契约校验导出面：validateFixture 纯函数（2026-09-17）
+
+> 长程并行线 1/3（契约可分发化）决策之一；依据 = 2026-09-17 三路勘察实证。
+
+### 背景
+
+ADR-001 收口后，金样本的「物理半边」已冻结，但其格式契约校验逻辑全部内联在
+`src/fixtures.test.ts`（fixtureSchema 元 schema、reject.stage 声明一致性、accept/reject ×
+wire/dispatch 三分支、behavior.reply 引用格式），模块私有且与 vitest `expect` 耦合——包
+消费方不可达。三个实现阵营对同一契约的验证深度不齐：主仓靠镜像门禁、KuroAdapter-Pure
+手拷 JSON 后以 Java 重写同一套三分支逻辑（FixtureConformanceTest.java）、koishi 对端未接
+金样本。「同一契约」的校验语义存在两份手写实现，漂移只是时间问题。
+
+### 选项
+
+| 方案 | 内容 | 评估 |
+|---|---|---|
+| A. 维持测试私有 | 不导出，第三方继续手抄 | 现状延续：Java/TS 双实现漂移风险不减，koishi 侧接入成本高 |
+| B. 导出 assert 函数族 | 把测试断言原样搬出（抛错/expect 风格） | 断言风格绑测试框架心智；vitest 不可进运行时依赖；错误不可聚合 |
+| C. **导出纯函数 validateFixture** | 元 schema + 全部一致性规则聚合为一个纯函数，数据进、结果出 | 消费方零新增依赖（zod 已是运行时依赖）；结果式返回让任何框架/语言对端自选断言方式；与 src 零 Node API 约束（tsconfig `types: []`）兼容 |
+
+### 结论
+
+**选 C**。`src/` 新增 `fixtures.ts`（零 Node API，仅依赖 zod 与本仓 schema），从
+`src/fixtures.test.ts` 平移提炼，导出面三件：
+
+- `fixtureSchema`：金样本元 schema（name/note/source/frames[].dir/expect 三段）；
+- `type Fixture`：`z.infer<typeof fixtureSchema>`；
+- `validateFixture(raw: unknown): { ok: true; fixture: Fixture } | { ok: false; issues: string[] }`
+  ——聚合四层校验：元 schema parse → reject.stage 声明一致性 → 逐帧三分支（accept 必过
+  方向 schema；reject.wire 必拒 wireFrameSchema 骨架；reject.dispatch 过骨架且必拒方向
+  schema）→ behavior.reply 引用格式与索引界。issues 为人类可读字符串（含样本名与帧序号），
+  不抛异常、不依赖任何测试框架。
+
+**明确不导出的：行为语义执行器。** close code/reason 与 reply 帧的「实跑验证」依赖具体
+实现的鉴权、handler 与连接设施（KuroAdapter-Pure 的 runBehaviorIfObservable 即此模式），
+协议包只承载期望声明（`expect.behavior`），执行归各消费方——`docs/fixtures.md` 的
+「behavior 仅校验形状」边界维持不变，但「形状校验」本身自此成为可分发 API。
+
+`src/fixtures.test.ts` 同批降级为消费方（断言全部金样本 `validateFixture` ok + name 唯一），
+16 条静态 import 注册表形态**保持不变**（`scripts/verify-fixtures.mjs` 依赖其 import 路径做
+三方比对，见 ADR-003）；硬编码份数断言 `toBe(16)` 删除，份数真相移交脚本的三方一致校验
+（本仓 `docs/fixtures.md` 与 BOOTSTRAP-NOTES/DECISIONS 附录中的其余「16」：活文档处改指针，
+历史实录与对 Pure 机制的描述性引用保留原文）。
+
+### 对构建链的影响与镜像联动
+
+`src/fixtures.ts` 为 src 新文件、`src/index.ts` 有 re-export 与注释变更——两者均触发主仓
+镜像门禁（`fixtures.test.ts` 在主仓脚本白名单内，无需同步）。同步规程见
+`docs/MIRROR-RESYNC.md`（ADR-031 流程首次实战）。包产物新增 fixtures 校验导出，体积影响
+可忽略。
+
+### 回滚方式
+
+revert 本 ADR 对应 commit（src/fixtures.ts、index.ts、fixtures.test.ts），主仓按
+MIRROR-RESYNC 反向同步即可。
+
+---
+
+## ADR-003 金样本分发形态：随主包分发 + bin 校验命令（2026-09-17）
+
+> 长程并行线 1/3（契约可分发化）决策之二；依据 = 2026-09-17 `npm pack --dry-run` 实证。
+
+### 背景
+
+`npm pack --dry-run` 实证（2026-09-17）：当前 tar 包 10 个文件仅 dist 双格式 + LICENSE +
+README + package.json，`fixtures/`（16 份 JSON + SHA256SUMS）与 docs 均不在包内。金样本是
+协议「物理半边」契约，却只能靠跨仓手拷分发（KuroAdapter-Pure 现行机制，且其 pin 守卫只数
+份数不校内容、SHA256SUMS 未随拷）。目标：第三方「装包即得金样本 + 一条命令校验」。
+
+### 选项
+
+| 方案 | 内容 | 评估 |
+|---|---|---|
+| A. **随主包分发** | `files` 增补 `fixtures` + 校验脚本 | 版本联动天然成立：金样本与 schema 同 tar，「包版本 ≡ 协议版本」一词覆盖两者；零新增安装摩擦；体积 +22.3 kB 内容（17 文件纯文本，实测 `find fixtures -type f -exec cat {} + \| wc -c` = 22829） |
+| B. 拆子包 `@kuro-bridge/protocol-fixtures` | 独立版本轴 | 版本联动退化为双包 bump 纪律；本生态有版本轴事故前科（npm 0.1.0，ADR-001）；koishi 对端多一个依赖与 peer 表达；首发流程翻倍。体积收益微小——金样本本就是契约本体，装契约包得样本语义自洽 |
+
+### 结论
+
+**选 A**。实施：
+
+1. `package.json` `files`: `["dist", "fixtures", "scripts/verify-fixtures.mjs"]`——金样本
+   全目录（含 SHA256SUMS）与校验脚本入包。
+2. `bin`: `"kuro-bridge-verify-fixtures"` → `scripts/verify-fixtures.mjs`（零依赖 Node
+   脚本），装包后 `npx kuro-bridge-verify-fixtures` 一条命令校验。
+3. **不**新增 `exports` 子路径：JSON 金样本是物理契约，消费方式 = 文件读取 + SHA256SUMS
+   比对（JVM、shell `sha256sum -c`、任意语言 fs 均可），不经模块 import——避开 exports
+   封闭与 JSON import 的 CJS/ESM 差异坑；模块化消费走 ADR-002 的 `validateFixture`。
+4. 脚本双模式自动降级：仓内运行 = 三方一致（fixtures 目录 ↔ SHA256SUMS ↔
+   fixtures.test.ts 注册表 import，外加逐文件 sha256 实算）；在 node_modules 包内运行
+   （无 src/）= 两方（目录 ↔ SHA256SUMS + 实算），打印模式说明。版本目录名由包
+   `version` 推导（`0.4.0` → `v0.4`），把「版本 ↔ 目录」锚进机器。
+
+### 对消费方的建议（记录不实施，实施归各仓）
+
+- KuroAdapter-Pure：升依赖 `@kuro-bridge/protocol@^0.4.0` 后，测试资源可改从包内
+  `fixtures/v0.4/` 消费并以 SHA256SUMS 校验，淘汰手拷 + 只数份数的 pin 守卫
+  （FixtureConformanceTest.java 的 `EXPECTED_FIXTURE_COUNT = 16` 常量随之消灭）；PIN.md
+  补记来源 commit hash（ADR-001 附录建议 1）。
+- koishi 对端：升依赖后可直接以包内金样本驱动契约测试（validateFixture + fixtures 目录），
+  对齐 ADR-001 阶段 2 第 4 步。
+
+### 回滚方式
+
+revert package.json files/bin 与脚本 commit（发布 0.4.0 前随时可退）；已发布则下一版本
+移除。
