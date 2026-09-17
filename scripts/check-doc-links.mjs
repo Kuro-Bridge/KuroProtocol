@@ -39,16 +39,9 @@ const EXEMPTIONS = [
         match: /^docs\/STATUS\.md$/,
     },
     {
-        // 主仓 KuroAdapter 的镜像门禁脚本：docs/DECISIONS.md:52 上下文明确「由主仓 …
-        // 强制」，本仓无此文件。ADR 台账永不改写历史，故豁免而非改文。
+        // 主仓 KuroAdapter 的镜像门禁脚本（跨仓固定引用：docs/DECISIONS.md ADR-001、
+        // docs/MIRROR-RESYNC.md、docs/RELEASE.md 协同节均指主仓侧该脚本），本仓无此文件。
         match: /^scripts\/check-protocol-mirror\.mjs$/,
-        files: ["docs/DECISIONS.md"],
-    },
-    {
-        // 主仓 KuroAdapter 的镜像同步规程文档：docs/DECISIONS.md:179（ADR-002 镜像联动
-        // 节，指主仓 ADR-031 配套流程），本仓 docs/ 无此文件。
-        match: /^docs\/MIRROR-RESYNC\.md$/,
-        files: ["docs/DECISIONS.md"],
     },
 ];
 
