@@ -24,7 +24,7 @@ pnpm gate           # 提交前唯一权威门禁：check + test + build + 夹�
 
 ## 金样本与校验
 
-装包即得 `fixtures/v0.4/`（16 份金样本 + `SHA256SUMS`，ADR-003）——金样本随主包分发，消费方
+装包即得 `fixtures/v0.4/`（全部金样本 + `SHA256SUMS`，份数 = SHA256SUMS 行数，ADR-003）——金样本随主包分发，消费方
 无需跨仓手拷：
 
 - **包内两方校验**：`npx kuro-bridge-verify-fixtures`（bin 命令；fixtures 目录 ↔ SHA256SUMS +
