@@ -1,4 +1,4 @@
-# bridge/protocol 设计（@kurobridge/protocol）
+# KuroProtocol 设计（@kuro-bridge/protocol）
 
 > **平移出处（2026-09-15）**：本文件自主仓 KuroAdapter（commit `59d3be7`）
 > `bridge/protocol/docs/design.md` 原样平移——历史行文中的相对路径（`docs/history/` 等）仍指主仓

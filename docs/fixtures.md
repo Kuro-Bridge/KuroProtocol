@@ -1,6 +1,6 @@
 # 金样本夹具（fixtures）
 
-> **物理契约**：`fixtures/v<版本>/` 是 KuroBridge 生态实现阵营的跨仓一致性样本——消费方（如
+> **物理契约**：`fixtures/` 下的 `v<版本>/` 目录是 KuroBridge 生态实现阵营的跨仓一致性样本——消费方（如
 > KuroAdapter-Pure 的 JUnit 测试）按 pin 版本整目录拷贝进自己的测试资源消费；TS 侧由
 > `src/fixtures.test.ts` 做一致性门禁（正样本必须被 zod parse 通过、拒绝样本必须被拒）。
 > 格式变更属协议仓结构性变更，须同步更新本文件与所有消费方。
@@ -10,13 +10,13 @@
 ```
 fixtures/
 └── v0.4/
-    ├── SHA256SUMS     16 份夹具的 sha256 清单（相对本目录路径，内容校验锚点）
+    ├── SHA256SUMS     全部夹具的 sha256 清单（份数 = 本文件行数；相对本目录路径，内容校验锚点，格式兼容 sha256sum -c）
     ├── handshake/     握手链路：成功 / 版本协商拒绝 / token 鉴权拒绝
     ├── frames/        业务帧：chat 双向、command、query、心跳、bindings_updated
     └── tolerance/     两段式解析与未知帧容忍：wire 骨架拒绝 / dispatch 拒绝 / 未知帧三分支
 ```
 
-每份 JSON = 一个场景。目录只随协议版本新增（`fixtures/v0.5/`…），已发布版本目录内的夹具不修改。
+每份 JSON = 一个场景。目录只随协议版本新增（`fixtures/` 下开新的 `v<下一版本>` 目录），已发布版本目录内的夹具不修改。
 
 ## 字段格式
 
@@ -48,7 +48,7 @@ fixtures/
 | `frames[].frame` | 是 | 线格式帧原样（`{header, body}`，未摊平） |
 | `expect.schema` | 是 | `"accept"`：每帧按方向 schema 解析必须通过；`"reject"`：见 `reject.stage` |
 | `expect.reject.stage` | reject 时必填 | `"wire"`：每帧连 `wireFrameSchema` 骨架都必须拒绝（type 违反 snake_case、id 非 UUID、缺 header 等）；`"dispatch"`：每帧过 wire 骨架、但方向 schema 拒绝（两段式解析第二段：未知 type、已知 type 但 body 非法、事件帧带 id 等） |
-| `expect.behavior` | 是 | 行为契约**注记**（非 zod 可验，供消费方测试实现）：`reply` = 期望回执帧（`"frames[N]"` 引用本文件第 N 帧，或 `null`）；`close` = 期望关闭行为（`{code, reason}` 或 `null`）。TS 门禁只校验其形状 |
+| `expect.behavior` | 是 | 行为契约**注记**（非 zod 可验，供消费方测试实现）：`reply` = 期望回执帧（`"frames[N]"` 引用本文件第 N 帧，或 `null`）；`close` = 期望关闭行为（`{code, reason}` 或 `null`）。TS 侧经 `validateFixture`（ADR-002 导出）校验其形状与引用 |
 
 ## 约定
 
@@ -60,9 +60,14 @@ fixtures/
 ## 维护（四件套同改的一环）
 
 - 协议任何变更 = src schema + `docs/peer-guide.md` + fixtures + `docs/changelog.md` 同批落地。
-- TS 门禁 `src/fixtures.test.ts` 以**静态 import** 逐份消费（保持 src 零 Node API）——新增夹具
-  需在门禁文件登记 import 与期望。
-- **每个版本目录配一份 `SHA256SUMS`**（新增/修改夹具的同一提交内重新生成）——消费方拷贝后按
-  `sha256sum -c` 校验，拷错版本目录即红。
+- **新增夹具四步**：加 JSON 金样本 → 重算 `SHA256SUMS` → 在 `src/fixtures.test.ts` 登记
+  import 与注册表条目 → 跑校验命令确认。**无需改任何份数字**——份数真相 = `SHA256SUMS`
+  行数 = 注册表长度，由校验命令机器比对。
+- `SHA256SUMS` 重算（路径相对版本目录）：
+  `cd fixtures/v0.4 && sha256sum handshake/*.json frames/*.json tolerance/*.json > SHA256SUMS`
+- 校验命令两条：仓内 `pnpm verify:fixtures`（三方一致：fixtures 目录 ↔ SHA256SUMS ↔
+  fixtures.test.ts 注册表，另加逐文件 sha256 实算）；包内 `npx kuro-bridge-verify-fixtures`
+  （两方：目录 ↔ SHA256SUMS + 实算，ADR-003）。
+- TS 门禁 `src/fixtures.test.ts` 以**静态 import** 逐份消费（保持 src 零 Node API）。
 - 消费方（如 KuroAdapter-Pure）拷贝时在测试资源旁留 pin 记录（来源仓 + 版本 + 日期 + **来源仓
   commit hash**），并按 SHA256SUMS 校验拷贝件（建议项，见 DECISIONS.md ADR-001 附录）。
