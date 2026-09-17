@@ -34,7 +34,11 @@ npm org ls kuro-bridge        # 确认成员/权限；若无 org 则确认 scope
 # 4) registry 现状核对（期望只见到 0.1.0，无 0.4.0）
 npm view @kuro-bridge/protocol versions
 
-# 5) 发布件终验（期望 total files: 28，fixtures 17 份在列）
+# 5) 发布 registry 自查（本机 pnpm 默认 registry 为只读 npmmirror 镜像，
+#    因此下方 publish 命令显式指定 npmjs，勿省略 --registry）
+pnpm config get registry
+
+# 6) 发布件终验（期望 total files: 28，fixtures 17 份在列）
 npm pack --dry-run
 ```
 
@@ -44,8 +48,8 @@ npm pack --dry-run
 # 1) 推送全部提交（发布件必须与 git 历史一致，发布后不可再改写）
 git push origin master
 
-# 2) 发布 0.4.0
-pnpm publish --access public
+# 2) 发布 0.4.0（--registry：本机 pnpm 默认 npmmirror 只读，须显式指 npmjs）
+pnpm publish --access public --registry https://registry.npmjs.org
 
 # 3) 核对上架结果（期望 0.1.0, 0.4.0）
 npm view @kuro-bridge/protocol versions
