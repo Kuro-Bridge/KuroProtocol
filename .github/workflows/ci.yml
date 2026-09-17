@@ -1,0 +1,19 @@
+# 本仓首个 CI：单一 gate 命令承载全部门禁（与本地 pnpm gate 完全同构，2026-09-17）。
+# corepack 依赖 package.json 的 packageManager 字段（pnpm@11.21.0）提供 pnpm。
+name: CI
+on:
+    push:
+        branches: [master]
+    pull_request:
+jobs:
+    gate:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: corepack enable
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 26 # 对齐 mise.toml；工具链已在 node 24.16.0 本机实证
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm gate
