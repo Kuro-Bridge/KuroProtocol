@@ -22,7 +22,7 @@ KuroAdapter-Pure（纯净线：纯 Java Paper 插件）与第三方对端（napu
 4. **`src/` 零 Node API**：禁止 `fs` / `process` / `ws` 等任何 Node 依赖（tsconfig `types: []` 强制），
    target ES2020，QuickJS（LSE）可直接跑。测试文件同样不引入 Node API（夹具用静态 JSON import）。
 5. **fixtures 是跨仓库物理契约**：`fixtures/v0.4/*.json` 会被实现阵营（如 KuroAdapter-Pure）按 pin
-   版本拷贝进各自测试资源消费。只随协议版本新增目录（`fixtures/v<version>/`），不修改已发布版本的夹具。
+   版本拷贝进各自测试资源消费。只随协议版本新增目录（`fixtures/` 下的 `v<version>/`），不修改已发布版本的夹具。
 6. **peer-guide 是跨仓库规格契约**：文档与 schema 冲突时以 `src/` schema 为准，并回改 peer-guide。
 7. **协议语义禁止自行发明**：语义变更需先在 changelog 立条目（含出处），再动 schema。
 
@@ -30,15 +30,21 @@ KuroAdapter-Pure（纯净线：纯 Java Paper 插件）与第三方对端（napu
 
 ```bash
 pnpm install            # 安装依赖（mise：node 26）
-pnpm check              # biome check + tsc --noEmit（提交前必跑）
+pnpm check              # biome check + tsc --noEmit
 pnpm fix                # biome 自动修复 + tsc
 pnpm test               # vitest run（协议单测 + 夹具一致性门禁）
-pnpm build              # tsdown 单文件构建（dist/index.mjs）
+pnpm build              # tsdown 双格式构建（dist/index.mjs + dist/index.cjs，ADR-001）
+pnpm gate               # 提交前门禁（唯一权威）：check+test+build+verify:fixtures+verify:version+verify:docs
 ```
 
 发布：**只能从本仓出**（`pnpm publish`，`publishConfig.access=public` 与 CJS 双格式产物已就位）。
 本仓尚未发布；npm 现存 0.1.0 系拆仓前夜从主仓误发的旧线（两轴错位、exports 缺 require），
 首发 0.4.0 + deprecate 0.1.0 的流程与命令见 `docs/DECISIONS.md` ADR-001（需账号操作，用户执行）。
+
+金样本随包分发（ADR-003）：`package.json` 的 `files` 含 `fixtures`，bin
+`kuro-bridge-verify-fixtures`——装包即得 `fixtures/v0.4/` + `SHA256SUMS`，包内一条命令两方
+校验（目录 ↔ SHA256SUMS + sha256 实算）。新增夹具流程：加 JSON + 重算 `SHA256SUMS` + 在
+`src/fixtures.test.ts` 登记 import 与注册表条目（无需改任何份数字），详见 `docs/fixtures.md`。
 
 ## 代码风格（biome 已强制，手动也须遵守）
 

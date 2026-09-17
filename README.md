@@ -7,7 +7,7 @@ KuroBridge 生态所有实现阵营——主仓 KuroAdapter（全量线）、Kur
 第三方对端——以本仓为契约源：
 
 - **规格契约**：`docs/peer-guide.md`（跨仓库契约；帧名与字段以 `src/` 的 zod schema 为 SSOT）
-- **物理契约**：`fixtures/v0.4/`（金样本 JSON；消费方按 pin 版本拷贝进测试资源，格式见 `docs/fixtures.md`）
+- **物理契约**：`fixtures/v0.4/`（金样本 JSON + `SHA256SUMS`；随包分发，装包即得，校验方式见下文「金样本与校验」，格式见 `docs/fixtures.md`）
 - **版本演进**：`docs/changelog.md`（协议 0.1→0.4.0 简史 + bump 规则）
 - **决策记录**：`docs/DECISIONS.md`（ADR-001：SSOT 收口、发布线与主仓镜像冻结）
 
@@ -15,11 +15,23 @@ KuroBridge 生态所有实现阵营——主仓 KuroAdapter（全量线）、Kur
 
 ```bash
 pnpm install        # 安装依赖（mise：node 26）
-pnpm check          # biome check + tsc --noEmit（提交前必跑）
+pnpm check          # biome check + tsc --noEmit
 pnpm fix            # biome 自动修复 + tsc
 pnpm test           # vitest run（含夹具一致性门禁）
-pnpm build          # tsdown 构建（dist/index.mjs）
+pnpm build          # tsdown 双格式构建（dist/index.mjs + dist/index.cjs，ADR-001）
+pnpm gate           # 提交前唯一权威门禁：check + test + build + 夹具三方一致 + 版本锚 + 死链检查
 ```
+
+## 金样本与校验
+
+装包即得 `fixtures/v0.4/`（16 份金样本 + `SHA256SUMS`，ADR-003）——金样本随主包分发，消费方
+无需跨仓手拷：
+
+- **包内两方校验**：`npx kuro-bridge-verify-fixtures`（bin 命令；fixtures 目录 ↔ SHA256SUMS +
+  sha256 实算）。
+- **仓内门禁**：`pnpm gate`（check + test + build + 夹具三方一致 + 版本锚 + 死链检查）。
+- **程序化消费**：`import { validateFixture } from "@kuro-bridge/protocol"`（ADR-002 导出的
+  纯函数校验器，格式契约见 `docs/fixtures.md`）。
 
 ## 硬性规则
 
