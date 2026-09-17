@@ -2,11 +2,14 @@
     "$schema": "https://json.schemastore.org/package.json",
     "name": "@kuro-bridge/protocol",
     "version": "0.4.0",
+    "packageManager": "pnpm@11.21.0",
     "description": "kurobridge-ws 协议的家：zod schema SSOT + 规格书 + 金样本夹具（包版本 ≡ 协议版本）",
     "type": "module",
     "license": "MIT",
     "files": [
-        "dist"
+        "dist",
+        "fixtures",
+        "scripts/verify-fixtures.mjs"
     ],
     "main": "./dist/index.cjs",
     "module": "./dist/index.mjs",
@@ -23,6 +26,9 @@
             }
         }
     },
+    "bin": {
+        "kuro-bridge-verify-fixtures": "scripts/verify-fixtures.mjs"
+    },
     "publishConfig": {
         "access": "public"
     },
@@ -33,7 +39,8 @@
         "check": "biome check . && tsc --noEmit",
         "fix": "biome check --write . && tsc --noEmit",
         "test": "vitest run",
-        "test:watch": "vitest"
+        "test:watch": "vitest",
+        "verify:fixtures": "node scripts/verify-fixtures.mjs"
     },
     "dependencies": {
         "zod": "^4.0.0"
