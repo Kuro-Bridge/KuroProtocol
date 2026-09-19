@@ -48,7 +48,7 @@ fixtures/
 | `frames[].frame` | 是 | 线格式帧原样（`{header, body}`，未摊平） |
 | `expect.schema` | 是 | `"accept"`：每帧按方向 schema 解析必须通过；`"reject"`：见 `reject.stage` |
 | `expect.reject.stage` | reject 时必填 | `"wire"`：每帧连 `wireFrameSchema` 骨架都必须拒绝（type 违反 snake_case、id 非 UUID、缺 header 等）；`"dispatch"`：每帧过 wire 骨架、但方向 schema 拒绝（两段式解析第二段：未知 type、已知 type 但 body 非法、事件帧带 id 等） |
-| `expect.behavior` | 是 | 行为契约**注记**（非 zod 可验，供消费方测试实现）：`reply` = 期望回执帧（`"frames[N]"` 引用本文件第 N 帧，或 `null`）；`close` = 期望关闭行为（`{code, reason}` 或 `null`）。TS 侧经 `validateFixture`（ADR-002 导出）校验其形状与引用 |
+| `expect.behavior` | 是 | 行为契约**注记**（非 zod 可验，供消费方测试实现）：`reply` = 期望回执帧（`"frames[N]"` 引用本文件第 N 帧，或 `null`）；`close` = 期望关闭行为（`{code, reason}` 或 `null`）。TS 侧经 `validateFixture`（本仓 ADR-002 导出）校验其形状与引用 |
 
 ## 约定
 
@@ -67,7 +67,7 @@ fixtures/
   `cd fixtures/v0.4 && sha256sum handshake/*.json frames/*.json tolerance/*.json > SHA256SUMS`
 - 校验命令两条：仓内 `pnpm verify:fixtures`（三方一致：fixtures 目录 ↔ SHA256SUMS ↔
   fixtures.test.ts 注册表，另加逐文件 sha256 实算）；包内 `npx kuro-bridge-verify-fixtures`
-  （两方：目录 ↔ SHA256SUMS + 实算，ADR-003）。
+  （两方：目录 ↔ SHA256SUMS + 实算，本仓 ADR-003）。
 - TS 门禁 `src/fixtures.test.ts` 以**静态 import** 逐份消费（保持 src 零 Node API）。
 - 消费方（如 KuroAdapter-Pure）拷贝时在测试资源旁留 pin 记录（来源仓 + 版本 + 日期 + **来源仓
-  commit hash**），并按 SHA256SUMS 校验拷贝件（建议项，见 DECISIONS.md ADR-001 附录）。
+  commit hash**），并按 SHA256SUMS 校验拷贝件（建议项，见 DECISIONS.md 本仓 ADR-001 附录）。
