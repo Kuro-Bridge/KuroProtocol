@@ -7,7 +7,12 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "includes": ["src/**/*.{ts,tsx,mts,cts,js,mjs,cjs,jsx}"]
+        "includes": [
+            "src/**/*.{ts,tsx,mts,cts,js,mjs,cjs,jsx}",
+            "scripts/**/*.mjs",
+            "tsdown.config.ts",
+            "vitest.config.ts"
+        ]
     },
     "formatter": {
         "enabled": true,
@@ -96,6 +101,30 @@
         }
     },
     "overrides": [
+        {
+            // 白名单（批次 2026-09-19-modernize，基线 §10 终裁 2：扩面暴露的重构级违例逐条
+            // 入册、本波零重构）。scripts/verify-fixtures.mjs 系 npm 发布物（files 清单 + bin
+            // kuro-bridge-verify-fixtures），拆函数/移动代码触碰发布物字节，超出「零行为变更」
+            // 红线授权面。逐条：
+            // - noExcessiveCognitiveComplexity：main() 实测 30（>15）——三方一致校验单入口的
+            //   顺序流程（前提推导→三方收集→两两比对→聚齐输出），违规聚齐后统一输出是其
+            //   契约（ADR-003），拆分需重构聚合逻辑。
+            // - useTopLevelRegex：parseSums 的 /\r?\n/ 行拆分——SHA256SUMS 单文件单次解析
+            //   （每次运行仅调用一次），无热路径重编译开销，提升到顶层属代码移动。
+            // 域内其余规则（格式、noConsole、命名等）全量生效，仅豁免本两条重构级规则；
+            // scripts/ 另两个文件（check-doc-links.mjs / assert-version.mjs）无任何豁免。
+            "includes": ["scripts/verify-fixtures.mjs"],
+            "linter": {
+                "rules": {
+                    "complexity": {
+                        "noExcessiveCognitiveComplexity": "off"
+                    },
+                    "performance": {
+                        "useTopLevelRegex": "off"
+                    }
+                }
+            }
+        },
         {
             "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/__tests__/**"],
             "linter": {
