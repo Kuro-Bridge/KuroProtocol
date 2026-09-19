@@ -119,7 +119,8 @@ npm deprecate @kuro-bridge/protocol@0.1.0 \
 > ③ 主仓删 `bridge/protocol` 镜像与 `check-protocol-mirror.mjs` 门禁、三消费方切 `^0.4.0`
 > （主仓 ADR-035）；④ 上游对端切 `^0.4.0` 并移除 `alwaysBundle` 绕行（其 KUROBRIDGE-NOTES
 > KD-13 结案）。同波 KuroAdapter-Pure 侧已按 ADR-003 附录建议改从 npm 包机械刷新 fixtures
-> （含 SHA256SUMS 校验，2026-09-18 起，见其 `core/src/test/resources/fixtures/PIN.md`）。
+> （含 SHA256SUMS 校验，2026-09-18 起；机制与刷新 runbook 见 KuroAdapter-Pure 仓测试资源
+> 旁的金样本 pin 记录 PIN.md）。
 > 命令清单保留作执行实录；发布侧实况详见 `docs/RELEASE.md` 终态追记。
 
 ### 附：fixtures 同步机制改进建议（KuroAdapter-Pure 侧，本仓只记录不实施）

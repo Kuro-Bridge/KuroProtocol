@@ -114,7 +114,7 @@ node -e "console.log(require('@kuro-bridge/protocol').PROTOCOL_VERSION)"   # 0.4
   前置条件随发布完成失效。
 - **相邻线协同表三条均已执行完毕**：主仓删 `bridge/protocol` 镜像与 `check-protocol-mirror.mjs`
   门禁、三消费方切 `^0.4.0`（主仓 ADR-035）；Pure 侧改从 npm 包机械刷新 fixtures（含
-  SHA256SUMS 校验，见其 `core/src/test/resources/fixtures/PIN.md`）；上游对端切 `^0.4.0` 并
+  SHA256SUMS 校验，见 KuroAdapter-Pure 仓 fixtures 金样本 pin 记录 PIN.md）；上游对端切 `^0.4.0` 并
   移除 `alwaysBundle` 绕行。逐项核对见 `docs/DECISIONS.md` ADR-001 终态追注。
 
 「当前状态（2026-09-17）」节中「npm registry 现存唯一版本 `0.1.0`」等行文就此成为历史登记口径
