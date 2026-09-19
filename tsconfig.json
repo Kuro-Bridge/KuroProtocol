@@ -42,6 +42,10 @@
         "resolveJsonModule": true
     },
     "include": [
-        "src"
+        "src",
+        // 根目录构建/测试 config(基线 §2.1:根 config 收编进 tsc 检查域;config 不入 src,
+        // types: [] 的 src 纯度约束(QuickJS)不受影响)
+        "tsdown.config.ts",
+        "vitest.config.ts"
     ]
 }
