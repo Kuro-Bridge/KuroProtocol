@@ -38,8 +38,9 @@ pnpm gate               # 提交前门禁（唯一权威）：check+test+build+v
 ```
 
 发布：**只能从本仓出**（`pnpm publish`，`publishConfig.access=public` 与 CJS 双格式产物已就位）。
-本仓尚未发布；npm 现存 0.1.0 系拆仓前夜从主仓误发的旧线（两轴错位、exports 缺 require），
-首发 0.4.0 + deprecate 0.1.0 的流程与命令见 `docs/DECISIONS.md` ADR-001（需账号操作，用户执行）。
+**已发布**：0.4.0（2026-09-18T11:17Z 上架 npmjs，latest）；npm 旧线 0.1.0（拆仓前夜从主仓
+误发，两轴错位、exports 缺 require）已 deprecate。后续发布按 `docs/RELEASE.md` 手册重走，
+背景与事故记录见 `docs/DECISIONS.md` ADR-001。
 
 金样本随包分发（ADR-003）：`package.json` 的 `files` 含 `fixtures`，bin
 `kuro-bridge-verify-fixtures`——装包即得 `fixtures/v0.4/` + `SHA256SUMS`，包内一条命令两方
