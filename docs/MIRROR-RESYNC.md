@@ -1,5 +1,9 @@
 # 主仓镜像重同步规程（MIRROR-RESYNC）
 
+> **终态（2026-09-18）：主仓镜像 `bridge/protocol/` 与 `scripts/check-protocol-mirror.mjs`
+> 门禁已随 ADR-031 阶段 2 / ADR-035 退役删除，本规程自该日自然终止，保留作历史档案；
+> 下文 `bridge/protocol/src/` 等路径均为已删除的历史镜像路径。**
+
 > 配套主仓 KuroAdapter ADR-031（镜像冻结与字节级门禁）。本文件是 **KuroProtocol →
 > KuroAdapter** 方向的同步义务登记处：本仓每次改动 `src/`，都会使主仓
 > `scripts/check-protocol-mirror.mjs`（`pnpm check:protocol`，挂主仓 lefthook

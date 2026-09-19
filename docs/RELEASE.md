@@ -6,6 +6,10 @@
 > 依据：ADR-001（发布线切换 0.4.0 与 0.1.0 事故记录）、ADR-002/ADR-003
 > （2026-09-17 契约可分发化落地）。
 
+> **终态（2026-09-18）：本手册主命令序列（publish → 核对 → tag → deprecate）已全部执行完毕——
+> 0.4.0 已发布（npm `latest`）、0.1.0 已 deprecate、tag `v0.4.0` 已推。实况见文末
+> [终态追记（2026-09-18）](#终态追记2026-09-18)；正文保留作执行实录（runbook）。**
+
 ## 当前状态（2026-09-17）
 
 - `pnpm gate` 全绿（check + test 55 用例 + build 双格式 + 夹具三方一致 16/16/16 +
@@ -94,3 +98,24 @@ npm install @kuro-bridge/protocol@0.4.0
 npx kuro-bridge-verify-fixtures          # 期望：包内模式两方校验通过（16 份）
 node -e "console.log(require('@kuro-bridge/protocol').PROTOCOL_VERSION)"   # 0.4.0（CJS 路径即 0.1.0 事故的断裂点）
 ```
+
+## 终态追记（2026-09-18）
+
+本节为 2026-09-18 实际执行结果的回写；上文各节保留原拟稿（2026-09-17）口径，作 runbook 与
+执行实录存档，不再修改。与当时拟稿的差异如实记录如下：
+
+- **0.4.0 发布成功**：`@kuro-bridge/protocol@0.4.0` 于 2026-09-18T11:17:08Z 上架 npmjs，
+  `dist-tags.latest = 0.4.0`（registry 实况：`versions = ["0.1.0", "0.4.0"]`，2026-09-19 现场查证）。
+- **0.1.0 已 deprecate**：registry 弃用消息与上方命令序列第 5 步措辞逐字一致（即 ADR-001 原文）。
+- **tag `v0.4.0` 已推远端**，打在发布时 master HEAD `09a1131` 上。与拟稿差异：实际以
+  **lightweight** tag 落地（`git for-each-ref` 报 `objecttype=commit`），非上文固化的 annotated
+  惯例；已成事实不重打，后续发布仍按 annotated 惯例执行。
+- **master 与 origin 同步**：发布前推送（命令序列第 1 步）已执行，正文「发布前须先推送」的
+  前置条件随发布完成失效。
+- **相邻线协同表三条均已执行完毕**：主仓删 `bridge/protocol` 镜像与 `check-protocol-mirror.mjs`
+  门禁、三消费方切 `^0.4.0`（主仓 ADR-035）；Pure 侧改从 npm 包机械刷新 fixtures（含
+  SHA256SUMS 校验，见其 `core/src/test/resources/fixtures/PIN.md`）；上游对端切 `^0.4.0` 并
+  移除 `alwaysBundle` 绕行。逐项核对见 `docs/DECISIONS.md` ADR-001 终态追注。
+
+「当前状态（2026-09-17）」节中「npm registry 现存唯一版本 `0.1.0`」等行文就此成为历史登记口径
+（发布前快照），由本节覆盖。

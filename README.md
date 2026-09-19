@@ -40,9 +40,10 @@ src 零 Node API。
 
 ## 发布状态
 
-本仓**尚未发布**。npm 上现存 `@kuro-bridge/protocol@0.1.0`（2026-09-15）系拆仓前夜从主仓
-`bridge/protocol` 误发的旧线产物（包版本与内嵌协议版本错位、exports 缺 require），处置与
-0.4.0 首发 / deprecate 计划见 `docs/DECISIONS.md` ADR-001。**发布只能从本仓出。**
+**已发布**：`@kuro-bridge/protocol@0.4.0`（2026-09-18T11:17Z 上架 npmjs，`latest`，即当前协议
+版本）；npm 旧线 `0.1.0`（2026-09-15，拆仓前夜从主仓 `bridge/protocol` 误发：包版本与内嵌协议
+版本错位、exports 缺 require）已 deprecate；tag `v0.4.0` 已推本仓远端。后续发布的操作手册见
+`docs/RELEASE.md`，背景与事故记录见 `docs/DECISIONS.md` ADR-001。**发布只能从本仓出。**
 
 ## 来源
 
