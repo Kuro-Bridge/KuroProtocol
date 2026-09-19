@@ -9,9 +9,9 @@ jobs:
     gate:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
             - run: corepack enable
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v7
               with:
                   node-version: 26 # 对齐 mise.toml；工具链已在 node 24.16.0 本机实证
                   cache: pnpm
