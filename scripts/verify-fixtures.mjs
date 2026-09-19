@@ -26,7 +26,7 @@
  * cwd。零 npm 依赖（仅 node: 内建）；首行 shebang 供 bin 消费。
  */
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -226,7 +226,9 @@ function main() {
     if (repoMode) {
         console.log(`${TAG} 仓内模式：三方一致校验（目录实况 ↔ ${SUMS_NAME} 登记 ↔ 测试注册表）。`);
     } else {
-        console.log(`${TAG} 包内模式：两方校验（目录 ↔ ${SUMS_NAME}）；三方校验需在 KuroProtocol 仓内运行。`);
+        console.log(
+            `${TAG} 包内模式：两方校验（目录 ↔ ${SUMS_NAME}）；三方校验需在 KuroProtocol 仓内运行。`,
+        );
     }
 
     // —— 两两比对（某方不可用时跳过涉及它的比对，其余照常聚齐） ——

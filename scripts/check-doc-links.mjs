@@ -21,7 +21,7 @@ import { fileURLToPath } from "node:url";
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // 仓内相对路径 token：markdown 链接、正文、注释一视同仁（已知局限：紧邻的英文句点等
 // 标点会被并入 token——本仓行文路径均以反引号或 CJK 标点收尾，不受影响）
-const TOKEN = /(?:docs|src|fixtures|scripts)\/[A-Za-z0-9_.\-\/]+/g;
+const TOKEN = /(?:docs|src|fixtures|scripts)\/[A-Za-z0-9_.\-/]+/g;
 
 /**
  * 豁免清单：指向姊妹仓（主仓 KuroAdapter / KuroAdapter-Pure）布局的跨仓引用，本仓
