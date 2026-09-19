@@ -2,7 +2,8 @@
 
 > 形态对齐主仓 `docs/DECISIONS.md`：每项记录背景 → 选项 → 结论 → 理由，编号按时间序，永不改写历史。
 > 本台账只记**本仓**的决策；协议历史 ADR（ADR-001~030，如 ADR-008 zod SSOT、ADR-030 改名）见
-> 主仓 KuroAdapter 的 `docs/DECISIONS.md`——changelog 等文档引用的 ADR 编号默认指那份。
+> 主仓 KuroAdapter 的 `docs/DECISIONS.md`。编号判读规则：**本仓文档引用 ADR-001~003 默认指
+> 本仓三策；changelog 简史与协议演进语境的 ADR 编号（ADR-004 及以上）指主仓台账。**
 
 ---
 
@@ -112,6 +113,14 @@ npm deprecate @kuro-bridge/protocol@0.1.0 \
 # 4) 上游对端（koishi-dev/external/kurobridge，独立仓，需上游协作）
 #    "@kuro-bridge/protocol": "^0.1.0" → "^0.4.0"；移除 tsdown alwaysBundle 绕行（新包 exports 已含 require）
 ```
+
+> 注（2026-09-19）：阶段 2 四步已全部执行完成——① 本仓 0.4.0 首发（npm latest，
+> 2026-09-18T11:17Z 上架）；② 0.1.0 已 deprecate（registry 弃用消息即上块第 2 步原文）；
+> ③ 主仓删 `bridge/protocol` 镜像与 `check-protocol-mirror.mjs` 门禁、三消费方切 `^0.4.0`
+> （主仓 ADR-035）；④ 上游对端切 `^0.4.0` 并移除 `alwaysBundle` 绕行（其 KUROBRIDGE-NOTES
+> KD-13 结案）。同波 KuroAdapter-Pure 侧已按 ADR-003 附录建议改从 npm 包机械刷新 fixtures
+> （含 SHA256SUMS 校验，2026-09-18 起，见其 `core/src/test/resources/fixtures/PIN.md`）。
+> 命令清单保留作执行实录；发布侧实况详见 `docs/RELEASE.md` 终态追记。
 
 ### 附：fixtures 同步机制改进建议（KuroAdapter-Pure 侧，本仓只记录不实施）
 
