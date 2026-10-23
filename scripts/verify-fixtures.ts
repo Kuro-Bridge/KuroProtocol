@@ -37,26 +37,37 @@ const SEMVER = /^(\d+)\.(\d+)\.\d+(?:[-+].*)?$/;
 const SUMS_LINE = /^([0-9a-f]{64})\s+(.+)$/;
 const TEST_IMPORT = /from\s+"\.\.\/fixtures\/([^"]+\.json)"/g;
 
+interface SumEntry {
+    readonly lineNo: number;
+    readonly hash: string;
+    readonly path: string;
+}
+
+interface ParsedSums {
+    readonly entries: SumEntry[];
+    readonly bad: string[];
+}
+
 /** 结构性前提失败（package.json / 版本目录推导不出），无从比对，直接红退。 */
-function failStructural(detail) {
+function failStructural(detail: string): never {
     console.log(`${TAG} 失败（结构性前提，跳过一致比对）：${detail}`);
     process.exit(1);
 }
 
 /** 平台路径分隔符 → POSIX 正斜杠（三方集合统一以 POSIX 相对路径比对）。 */
-function toPosix(p) {
+function toPosix(p: string): string {
     return p.split(sep).join("/");
 }
 
 /** package.json version（x.y.z）→ fixtures 版本目录名（v<x>.<y>）；非法返回 null。 */
-function deriveVersionDir(version) {
+function deriveVersionDir(version: string): string | null {
     const m = SEMVER.exec(version);
     return m === null ? null : `v${m[1]}.${m[2]}`;
 }
 
 /** 递归枚举 dir 下全部文件（含子目录）的绝对路径，不筛后缀。 */
-function listFiles(dir) {
-    const files = [];
+function listFiles(dir: string): string[] {
+    const files: string[] = [];
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
@@ -69,17 +80,17 @@ function listFiles(dir) {
 }
 
 /** 实算文件 sha256（小写 hex）。 */
-function sha256Of(absPath) {
+function sha256Of(absPath: string): string {
     return createHash("sha256").update(readFileSync(absPath)).digest("hex");
 }
 
 /** 解析 SHA256SUMS 文本：合法行 → { lineNo, hash, path }；非法行 → bad 违规（带行号）。 */
-function parseSums(text) {
-    const entries = [];
-    const bad = [];
+function parseSums(text: string): ParsedSums {
+    const entries: SumEntry[] = [];
+    const bad: string[] = [];
     const lines = text.split(/\r?\n/);
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+        const line = lines[i] ?? "";
         if (line.trim() === "") {
             continue;
         }
@@ -90,14 +101,18 @@ function parseSums(text) {
                     `（期望 <64 位小写 hex><空白><相对路径>）：${line}`,
             );
         } else {
-            entries.push({ lineNo: i + 1, hash: m[1], path: m[2].trim() });
+            entries.push({ lineNo: i + 1, hash: m[1] ?? "", path: (m[2] ?? "").trim() });
         }
     }
     return { entries, bad };
 }
 
 /** 第 2 方核心：逐条实算 sha256 与登记值比对；登记指向的文件缺失即违规。 */
-function verifyHashes(entries, fixtureRoot, violations) {
+function verifyHashes(
+    entries: readonly SumEntry[],
+    fixtureRoot: string,
+    violations: string[],
+): void {
     for (const e of entries) {
         const abs = join(fixtureRoot, e.path);
         if (!existsSync(abs)) {
@@ -115,11 +130,15 @@ function verifyHashes(entries, fixtureRoot, violations) {
 }
 
 /** 第 3 方：正则提取 fixtures.test.ts 的金样本 import，剥去 ../fixtures/<版本目录>/ 前缀。 */
-function collectTestRegistry(source, versionDir, violations) {
+function collectTestRegistry(
+    source: string,
+    versionDir: string,
+    violations: string[],
+): Set<string> {
     const prefix = `${versionDir}/`;
-    const paths = new Set();
+    const paths = new Set<string>();
     for (const m of source.matchAll(TEST_IMPORT)) {
-        const ref = m[1];
+        const ref = m[1] ?? "";
         if (!ref.startsWith(prefix)) {
             violations.push(
                 `测试注册表引用了非当前版本目录：../fixtures/${ref}（当前应为 ${versionDir}）`,
@@ -137,7 +156,13 @@ function collectTestRegistry(source, versionDir, violations) {
 }
 
 /** 两两比对：A 有 B 无 → 「B 缺失」；B 有 A 无 → 「A 缺失」（排序输出）。 */
-function diffParties(labelA, setA, labelB, setB, violations) {
+function diffParties(
+    labelA: string,
+    setA: ReadonlySet<string>,
+    labelB: string,
+    setB: ReadonlySet<string>,
+    violations: string[],
+): void {
     for (const p of [...setA].filter((x) => !setB.has(x)).sort()) {
         violations.push(`${labelA} 有而 ${labelB} 缺失：${p}`);
     }
@@ -146,11 +171,11 @@ function diffParties(labelA, setA, labelB, setB, violations) {
     }
 }
 
-function main() {
-    const violations = [];
+function main(): void {
+    const violations: string[] = [];
 
     // —— 前提：包版本 → 版本目录 → 金样本根 ——
-    let pkg;
+    let pkg: unknown;
     try {
         pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
     } catch {
@@ -158,7 +183,11 @@ function main() {
             `无法读取或解析 ${toPosix(join(ROOT, "package.json"))}（脚本应位于 <root>/scripts/ 下）`,
         );
     }
-    const pkgVersion = typeof pkg.version === "string" ? pkg.version : "";
+    const versionField =
+        typeof pkg === "object" && pkg !== null
+            ? (pkg as { version?: unknown }).version
+            : undefined;
+    const pkgVersion = typeof versionField === "string" ? versionField : "";
     const versionDir = deriveVersionDir(pkgVersion);
     if (versionDir === null) {
         failStructural(
@@ -182,24 +211,25 @@ function main() {
         .map((abs) => toPosix(relative(fixtureRoot, abs)))
         .sort();
     const dirFiles = allFiles.filter((p) => p.endsWith(".json"));
-    const dirSet = new Set(dirFiles);
+    const dirSet = new Set<string>(dirFiles);
     for (const rel of dirFiles) {
         try {
             JSON.parse(readFileSync(join(fixtureRoot, ...rel.split("/")), "utf8"));
-        } catch (err) {
-            violations.push(`JSON 解析失败：fixtures/${versionDir}/${rel}（${err.message}）`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            violations.push(`JSON 解析失败：fixtures/${versionDir}/${rel}（${message}）`);
         }
     }
 
     // —— 第 2 方：SHA256SUMS 登记（存在性 + 解析 + 重复 + 逐行实算） ——
     const sumsFile = join(fixtureRoot, SUMS_NAME);
-    let sumsSet = null;
+    let sumsSet: Set<string> | null = null;
     let sumsCount = 0;
     if (existsSync(sumsFile)) {
         const { entries, bad } = parseSums(readFileSync(sumsFile, "utf8"));
         violations.push(...bad);
         sumsCount = entries.length;
-        sumsSet = new Set();
+        sumsSet = new Set<string>();
         for (const e of entries) {
             if (sumsSet.has(e.path)) {
                 violations.push(`${SUMS_NAME} 重复登记：${e.path}`);
@@ -216,7 +246,7 @@ function main() {
     }
 
     // —— 第 3 方：测试注册表 import（仅仓内形态） ——
-    let testSet = null;
+    let testSet: Set<string> | null = null;
     let testCount = 0;
     if (repoMode) {
         testSet = collectTestRegistry(readFileSync(testFile, "utf8"), versionDir, violations);
@@ -252,7 +282,7 @@ function main() {
                 `（版本目录 fixtures/${versionDir}；${counts.join(" / ")}）：`,
         );
         for (let i = 0; i < violations.length; i++) {
-            console.log(`  ${i + 1}. ${violations[i]}`);
+            console.log(`  ${i + 1}. ${violations[i] ?? ""}`);
         }
         process.exit(1);
     }

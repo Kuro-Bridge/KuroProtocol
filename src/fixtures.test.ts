@@ -93,7 +93,7 @@ describe("金样本夹具一致性门禁（fixtures/v0.4）", () => {
         });
         const names = new Set(fixtures.map((fixture) => fixture.name));
         expect(names.size).toBe(fixtures.length);
-        // 份数真相移交 scripts/verify-fixtures.mjs 三方一致校验（ADR-003）
+        // 份数真相移交 scripts/verify-fixtures.ts 三方一致校验（ADR-003）
     });
 
     for (const raw of rawFixtures) {

@@ -21,14 +21,16 @@ const SEMVER = /^\d+\.\d+\.\d+$/;
 // 只提取字面量（不 import TS）：匹配 src/meta.ts 的 PROTOCOL_VERSION = "x.y.z" 声明
 const PROTOCOL_VERSION_DECL = /PROTOCOL_VERSION\s*=\s*"([^"]*)"/;
 
-function fail(detail) {
+function fail(detail: string): never {
     console.log(`[verify:version] 失败：${detail}`);
     console.log("[verify:version] 硬性约束：包版本 ≡ 协议版本（AGENTS.md 硬性约束 3，ADR-001）。");
     process.exit(1);
 }
 
-const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
-const pkgVersion = typeof pkg.version === "string" ? pkg.version : "";
+const pkg: unknown = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
+const versionField =
+    typeof pkg === "object" && pkg !== null ? (pkg as { version?: unknown }).version : undefined;
+const pkgVersion = typeof versionField === "string" ? versionField : "";
 const metaSource = readFileSync(join(REPO_ROOT, "src", "meta.ts"), "utf8");
 const decl = PROTOCOL_VERSION_DECL.exec(metaSource);
 if (decl === null) {

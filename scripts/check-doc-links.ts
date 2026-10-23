@@ -23,11 +23,16 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // 标点会被并入 token——本仓行文路径均以反引号或 CJK 标点收尾，不受影响）
 const TOKEN = /(?:docs|src|fixtures|scripts)\/[A-Za-z0-9_.\-/]+/g;
 
+interface Exemption {
+    readonly match: RegExp;
+    readonly files?: readonly string[];
+}
+
 /**
  * 豁免清单：指向姊妹仓（主仓 KuroAdapter / KuroAdapter-Pure）布局的跨仓引用，本仓
  * 不存在同名文件；每条附证据理由。files 省略 = 全局豁免，否则仅豁免指定文件。
  */
-const EXEMPTIONS = [
+const EXEMPTIONS: readonly Exemption[] = [
     {
         // 主仓 KuroAdapter 的历史文档目录（本仓 docs/ 扁平无子目录）。引用处均带平移
         // 出处头或「主仓」限定：docs/design.md L3-6、docs/changelog.md L5、src/frame.ts
@@ -45,7 +50,7 @@ const EXEMPTIONS = [
     },
 ];
 
-function isExempt(relFile, token) {
+function isExempt(relFile: string, token: string): boolean {
     for (const exemption of EXEMPTIONS) {
         if (!exemption.match.test(token)) {
             continue;
@@ -56,7 +61,7 @@ function isExempt(relFile, token) {
 }
 
 /** 递归收集 dir 下指定扩展名的文件（排除不存在的情况由调用方 existsSync 把关）。 */
-function walk(dir, extension, accumulator) {
+function walk(dir: string, extension: string, accumulator: string[]): string[] {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
@@ -68,7 +73,7 @@ function walk(dir, extension, accumulator) {
     return accumulator;
 }
 
-const targets = [];
+const targets: string[] = [];
 for (const rootFile of ["README.md", "AGENTS.md"]) {
     const full = join(REPO_ROOT, rootFile);
     if (existsSync(full)) {
@@ -87,9 +92,9 @@ targets.sort();
 
 let referenceCount = 0;
 let exemptCount = 0;
-const violations = [];
+const violations: string[] = [];
 for (const file of targets) {
-    const relFile = relative(REPO_ROOT, file).replaceAll("\\", "/");
+    const relFile = relative(REPO_ROOT, file).split("\\").join("/");
     const lines = readFileSync(file, "utf8").split(/\r?\n/);
     for (const [index, line] of lines.entries()) {
         for (const token of line.match(TOKEN) ?? []) {
