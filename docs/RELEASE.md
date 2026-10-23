@@ -15,7 +15,7 @@
 - `pnpm gate` 全绿（check + test 55 用例 + build 双格式 + 夹具三方一致 16/16/16 +
   sha256 实算全符 + 版本锚 0.4.0 ≡ 0.4.0 + 死链 0）。
 - `npm pack --dry-run` 实证 28 文件：dist 双格式 7 + `fixtures/v0.4/` 17（金样本
-  16 + SHA256SUMS）+ `scripts/verify-fixtures.mjs` + LICENSE/README/package.json，
+  16 + SHA256SUMS）+ `scripts/verify-fixtures.ts` + LICENSE/README/package.json，
   package size 48.1 kB。
 - git：master 领先 origin（历史 6 笔 + 2026-09-17 新增 7 笔），**发布前须先推送**。
 - npm registry 现存唯一版本 `0.1.0`（2026-09-15 误发旧线，事故记录见 ADR-001）。

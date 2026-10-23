@@ -177,7 +177,7 @@ wire/dispatch 三分支、behavior.reply 引用格式），模块私有且与 vi
 「behavior 仅校验形状」边界维持不变，但「形状校验」本身自此成为可分发 API。
 
 `src/fixtures.test.ts` 同批降级为消费方（断言全部金样本 `validateFixture` ok + name 唯一），
-16 条静态 import 注册表形态**保持不变**（`scripts/verify-fixtures.mjs` 依赖其 import 路径做
+16 条静态 import 注册表形态**保持不变**（`scripts/verify-fixtures.ts` 依赖其 import 路径做
 三方比对，见 ADR-003）；硬编码份数断言 `toBe(16)` 删除，份数真相移交脚本的三方一致校验
 （本仓 `docs/fixtures.md` 与 BOOTSTRAP-NOTES/DECISIONS 附录中的其余「16」：活文档处改指针，
 历史实录与对 Pure 机制的描述性引用保留原文）。
@@ -218,9 +218,9 @@ README + package.json，`fixtures/`（16 份 JSON + SHA256SUMS）与 docs 均不
 
 **选 A**。实施：
 
-1. `package.json` `files`: `["dist", "fixtures", "scripts/verify-fixtures.mjs"]`——金样本
+1. `package.json` `files`: `["dist", "fixtures", "scripts/verify-fixtures.ts"]`——金样本
    全目录（含 SHA256SUMS）与校验脚本入包。
-2. `bin`: `"kuro-bridge-verify-fixtures"` → `scripts/verify-fixtures.mjs`（零依赖 Node
+2. `bin`: `"kuro-bridge-verify-fixtures"` → `scripts/verify-fixtures.ts`（零依赖 Node
    脚本），装包后 `npx kuro-bridge-verify-fixtures` 一条命令校验。
 3. **不**新增 `exports` 子路径：JSON 金样本是物理契约，消费方式 = 文件读取 + SHA256SUMS
    比对（JVM、shell `sha256sum -c`、任意语言 fs 均可），不经模块 import——避开 exports

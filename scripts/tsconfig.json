@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    // scripts/ 是 Node 侧门禁脚本：允许 node: 内建类型，但不污染 src 的 types: [] 纯度约束。
+    // 根 tsconfig 的 include 只覆盖 src/config，本配置单独收编 scripts/*.ts。
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "types": [
+            "node"
+        ]
+    },
+    "include": [
+        "**/*.ts"
+    ]
+}

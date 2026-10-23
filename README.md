@@ -28,7 +28,7 @@ pnpm gate           # 提交前唯一权威门禁：check + test + build + 夹�
 无需跨仓手拷：
 
 - **包内两方校验**：`npx kuro-bridge-verify-fixtures`（bin 命令；fixtures 目录 ↔ SHA256SUMS +
-  sha256 实算）。
+  sha256 实算）。bin 以 TypeScript 源码分发，依赖 Node 原生类型剥离（Node ≥ 22.18）。
 - **仓内门禁**：`pnpm gate`（check + test + build + 夹具三方一致 + 版本锚 + 死链检查）。
 - **程序化消费**：`import { validateFixture } from "@kuro-bridge/protocol"`（ADR-002 导出的
   纯函数校验器，格式契约见 `docs/fixtures.md`）。
