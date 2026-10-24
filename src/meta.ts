@@ -12,9 +12,10 @@ export const PROTOCOL_NAME = "kurobridge-ws" as const;
  * 0.3.0 服务端；v0.3.0 增鉴权 token、command/query 请求族、death 事件、config_reload
  * ——DEBT-1，未知帧容忍为协商安全网；v0.3.1 增 hello 可选 client（对端自报身份，
  * MVP-3，仅日志辨识不做行为分支）；v0.4.0 品牌迁移 kurobot-ws → kurobridge-ws
- * （ADR-030：唯一 breaking 是握手子协议字符串，帧形状零变化））
+ * （ADR-030：唯一 breaking 是握手子协议字符串，帧形状零变化）；v0.4.1 发布工程补丁
+ * （bin 切 TS 源码分发 / 补 repository 元数据 / 发布链改 OIDC，线协议零变更））
  */
-export const PROTOCOL_VERSION = "0.4.0" as const;
+export const PROTOCOL_VERSION = "0.4.1" as const;
 
 /** WS 子协议（ADR-003：大版本，握手期拒绝不兼容对端） */
 export const WS_SUBPROTOCOL = "kurobridge-ws.v1" as const;
