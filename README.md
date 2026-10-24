@@ -1,32 +1,30 @@
 <div align="center">
 
-<h1 id="kurobridge-protocol">
-  <img src=".github/assets/wordmark.svg" alt="KuroBridge Protocol" width="560">
-</h1>
+<img src=".github/assets/wordmark.svg" alt="KuroBridge Protocol" width="560">
 
-**`kurobridge-ws` 线协议的唯一契约源 —— zod schema、对端规格书与金样本，都从这里出**
+**kurobridge-ws 线协议的唯一契约源**
+
+<small>zod schema SSOT + 对端规格书 + 16 份金样本，装包即得</small>
 
 <p>
-  <sub>发布物</sub> <code>@kuro-bridge/protocol</code>
-  &emsp;<sub>协议版本</sub> <code>0.4.0</code>
-  &emsp;<sub>握手子协议</sub> <code>kurobridge-ws.v1</code>
-  &emsp;<sub>帧面</sub> <code>入站 5 · 出站 10</code>
-  &emsp;<sub>许可</sub> <code>MIT</code>
+  <img src="https://img.shields.io/npm/v/@kuro-bridge/protocol?style=flat" alt="npm：@kuro-bridge/protocol">
+  &emsp;
+  <img src="https://img.shields.io/badge/子协议-kurobridge--ws.v1-3E7C7C?style=flat" alt="子协议：kurobridge-ws.v1">
+  &emsp;
+  <img src="https://img.shields.io/badge/帧面-入站%205%20·%20出站%2010-57606A?style=flat" alt="帧面：入站 5 · 出站 10">
+  &emsp;
+  <img src="https://img.shields.io/badge/许可-MIT-6E7781?style=flat" alt="许可：MIT">
 </p>
 
 <p>
-  <a href="#契约构成">契约构成</a> •
-  <a href="#帧目录">帧目录</a> •
-  <a href="#金样本与三方校验">金样本与三方校验</a> •
-  <a href="#工作流">工作流</a> •
+  <a href="#契约构成">契约构成</a> ·
+  <a href="#帧目录">帧目录</a> ·
+  <a href="#金样本与三方校验">金样本与三方校验</a> ·
+  <a href="#工作流">工作流</a> ·
   <a href="#english">English</a>
 </p>
 
 </div>
-
-> [!NOTE]
-> **包版本 ≡ 协议版本**：npm 包发到哪个版本，协议就是哪个版本（锚：`src/meta.ts` 的 `PROTOCOL_VERSION`）。\
-> 「KuroBridge」是产品与生态统称；本仓是其协议层，仓名 KuroProtocol，发布名 `@kuro-bridge/protocol`。
 
 ---
 
@@ -55,10 +53,10 @@ KuroBridge 生态（协议视角）
 | 构件 | 位置 | 角色 |
 | :--- | :--- | :--- |
 | **Schema** | `src/` | zod schema 全集（线格式骨架 + WS / IPC 帧定义），帧名与字段的 SSOT |
-| **规格书** | [`docs/peer-guide.md`](docs/peer-guide.md) | 跨仓对端接入规格：连接语义、握手流程、关闭码、帧语义 |
-| **金样本** | `fixtures/v0.4/` | 16 份行为样本 + `SHA256SUMS`，随 npm 包分发的物理契约（格式见 [`docs/fixtures.md`](docs/fixtures.md)） |
-| **沿革** | [`docs/changelog.md`](docs/changelog.md) | 协议 0.1 → 0.4.0 简史与 bump 规则 |
-| **决策** | [`docs/DECISIONS.md`](docs/DECISIONS.md) | ADR-001~003（SSOT 收口、发布线、镜像冻结） |
+| **规格书** | [`docs/protocol/`](docs/README.md) | 跨仓对端接入规格：连接生命周期（lifecycle）、帧目录（frames）、IPC 内部通道（ipc）、版本模型（versioning） |
+| **金样本** | `fixtures/v0.4/` | 16 份行为样本 + `SHA256SUMS`，随 npm 包分发的物理契约（格式见 [`docs/protocol/fixtures.md`](docs/protocol/fixtures.md)） |
+| **沿革** | [`docs/protocol/versioning.md`](docs/protocol/versioning.md) | 协议 0.1 → 0.4.0 简史与 bump 规则 |
+| **决策** | [`docs/architecture/decisions.md`](docs/architecture/decisions.md) | ADR-001~003 结论（SSOT 收口、发布线唯一、金样本分发） |
 
 版本协商与兼容：`hello` 期对表 `protocolVersion`，主版本号相同即兼容（`isProtocolVersionCompatible`，如 0.2.0 对端可连 0.4.0 服务端）；旧名 `kurobot-ws` 自 0.4.0 起握手期拒绝，无双名兼容。
 
@@ -125,16 +123,16 @@ pnpm gate           # 提交前唯一权威门禁：check + test + build + 夹�
 ## 硬性规则
 
 > [!CAUTION]
-> **四件套同改**：任何协议变更 = 一次提交同时改齐 ① `src/` schema ② `docs/peer-guide.md` ③ `fixtures/` 金样本 ④ `docs/changelog.md`。缺一即门禁红。
+> **四件套同改**：任何协议变更 = 一次提交同时改齐 ① `src/` schema ② `docs/protocol/` 规格文档 ③ `fixtures/` 金样本 ④ `docs/protocol/versioning.md`。缺一即门禁红。
 
 > [!CAUTION]
-> **`src/` 零 Node API**：协议包必须在任意 JS 运行时可用；包版本 ≡ 协议版本，发布只能从本仓出（操作手册见 [`docs/RELEASE.md`](docs/RELEASE.md)）。完整约束见 [AGENTS.md](AGENTS.md)。
+> **`src/` 零 Node API**：协议包必须在任意 JS 运行时可用；包版本 ≡ 协议版本，发布只能从本仓出（操作手册见 [`docs/guides/release.md`](docs/guides/release.md)）。完整约束见 [AGENTS.md](AGENTS.md)。
 
 ## 发布状态
 
 - **现行**：`@kuro-bridge/protocol@0.4.0`（npm `latest`，2026-09-18 上架），tag `v0.4.0` 已推远端。
 - **旧线**：`0.1.0`（2026-09-15 拆仓前夜自主仓 `bridge/protocol` 误发：包版本与内嵌协议版本错位、exports 缺 require）已 deprecate。
-- 背景与事故记录见 [`docs/DECISIONS.md`](docs/DECISIONS.md) ADR-001。
+- 背景与事故记录见 [`docs/architecture/decisions.md`](docs/architecture/decisions.md) ADR-001。
 
 ## 来源
 
