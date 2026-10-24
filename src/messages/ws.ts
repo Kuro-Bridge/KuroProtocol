@@ -1,5 +1,5 @@
 /**
- * WS 侧消息（kurobridge-ws；逐帧字段表 SSOT 见 docs/peer-guide.md §5，
+ * WS 侧消息（kurobridge-ws；逐帧字段表见 docs/protocol/frames.md，
  * 原始设想与 v0.2 增量沿革见主仓 KuroAdapter docs/history/draft-v0.1.md §2/§6）
  *
  * v0.2（MVP 阶段一）：chat 双向携带 channel；hello_ack ok 体携带 channelBindings（ADR-004）；

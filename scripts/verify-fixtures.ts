@@ -20,7 +20,7 @@
  * 模式说明。全部违规聚齐后统一输出再 exit 1（不首错即退，方便一次看清）；无违规
  * exit 0。
  *
- * 出处：docs/DECISIONS.md ADR-003（2026-09-17）；bin 名 kuro-bridge-verify-fixtures
+ * 出处：docs/architecture/decisions.md ADR-003（2026-09-17）；bin 名 kuro-bridge-verify-fixtures
  * （装包后 npx 即用）；仓内入口 pnpm verify:fixtures。根目录由 import.meta.url 推导
  * （脚本位于 <root>/scripts/ 下：仓内 = 仓根，包内 = 包根，两者结构推导一致），不依赖
  * cwd。零 npm 依赖（仅 node: 内建）；首行 shebang 供 bin 消费。

@@ -5,7 +5,8 @@
  * 任何文件禁止手写消息类型，必须 `import { ... } from "@kuro-bridge/protocol"`。
  *
  * 原型最小集 + v0.2 / v0.3.x / v0.4.0 增量见各子模块与 meta.ts 版本史；
- * 语义说明见 docs/peer-guide.md（历史草案见主仓 KuroAdapter 的 docs/history/draft-v0.1.md，仅供考古）。
+ * 连接语义与帧目录见 docs/protocol/lifecycle.md 与 docs/protocol/frames.md
+ * （历史草案见主仓 KuroAdapter 的 docs/history/draft-v0.1.md，仅供考古）。
  */
 
 import type {

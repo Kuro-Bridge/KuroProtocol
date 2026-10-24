@@ -1,7 +1,8 @@
 # KuroProtocol 工程指南
 
-> 本文件是项目级指令。开始任何工作前，先读本文件与 `docs/changelog.md`（版本演进与 bump 规则）
-> → `docs/peer-guide.md`（跨仓规格契约）→ `docs/fixtures.md`（夹具格式）。
+> 本文件是项目级指令。开始任何工作前，先读本文件与 `docs/protocol/versioning.md`（版本演进与
+> bump 规则）→ `docs/protocol/lifecycle.md` 与 `docs/protocol/frames.md`（跨仓规格契约）
+> → `docs/protocol/fixtures.md`（夹具格式）。文档总入口见 `docs/README.md`。
 
 ## 本仓是什么
 
@@ -15,16 +16,17 @@ KuroAdapter-Pure（纯净线：纯 Java Paper 插件）与第三方对端（napu
 
 1. **SSOT 唯一**：`src/` 的 zod schema 是 kurobridge-ws 消息类型的唯一来源。任何消费方（含姊妹仓）
    禁止手写消息类型，必须 `import { ... } from "@kuro-bridge/protocol"`。
-2. **四件套同改**：任何协议变更 = 一次提交同时改齐 ① `src/` schema ② `docs/peer-guide.md`
-   ③ `fixtures/` 金样本（格式变更另改 `docs/fixtures.md`）④ `docs/changelog.md`。缺任何一件 = 工作未完成。
+2. **四件套同改**：任何协议变更 = 一次提交同时改齐 ① `src/` schema ② `docs/protocol/` 规格文档
+   （lifecycle / frames / ipc 按变更面）③ `fixtures/` 金样本（格式变更另改 `docs/protocol/fixtures.md`）
+   ④ `docs/protocol/versioning.md`。缺任何一件 = 工作未完成。
 3. **包版本 ≡ 协议版本**：`package.json` 的 `version` ≡ `src/meta.ts` 的 `PROTOCOL_VERSION`。
    拆仓首发 0.4.0 即对齐协议 0.4.0；此后协议 bump 即包 bump，不存在「包版本独立演进」。
 4. **`src/` 零 Node API**：禁止 `fs` / `process` / `ws` 等任何 Node 依赖（tsconfig `types: []` 强制），
    target ES2020，QuickJS（LSE）可直接跑。测试文件同样不引入 Node API（夹具用静态 JSON import）。
 5. **fixtures 是跨仓库物理契约**：`fixtures/v0.4/*.json` 会被实现阵营（如 KuroAdapter-Pure）按 pin
    版本拷贝进各自测试资源消费。只随协议版本新增目录（`fixtures/` 下的 `v<version>/`），不修改已发布版本的夹具。
-6. **peer-guide 是跨仓库规格契约**：文档与 schema 冲突时以 `src/` schema 为准，并回改 peer-guide。
-7. **协议语义禁止自行发明**：语义变更需先在 changelog 立条目（含出处），再动 schema。
+6. **protocol/ 规格文档是跨仓库规格契约**：文档与 schema 冲突时以 `src/` schema 为准，并回改文档。
+7. **协议语义禁止自行发明**：语义变更需先在 `docs/protocol/versioning.md` 立条目（含出处），再动 schema。
 
 ## 工作流
 
@@ -39,13 +41,13 @@ pnpm gate               # 提交前门禁（唯一权威）：check+test+build+v
 
 发布：**只能从本仓出**（`pnpm publish`，`publishConfig.access=public` 与 CJS 双格式产物已就位）。
 **已发布**：0.4.0（2026-09-18T11:17Z 上架 npmjs，latest）；npm 旧线 0.1.0（拆仓前夜从主仓
-误发，两轴错位、exports 缺 require）已 deprecate。后续发布按 `docs/RELEASE.md` 手册重走，
-背景与事故记录见 `docs/DECISIONS.md` ADR-001。
+误发，两轴错位、exports 缺 require）已 deprecate。后续发布按 `docs/guides/release.md` 手册重走，
+背景与事故记录见 `docs/architecture/decisions.md` ADR-001。
 
 金样本随包分发（ADR-003）：`package.json` 的 `files` 含 `fixtures`，bin
 `kuro-bridge-verify-fixtures`——装包即得 `fixtures/v0.4/` + `SHA256SUMS`，包内一条命令两方
 校验（目录 ↔ SHA256SUMS + sha256 实算）。新增夹具流程：加 JSON + 重算 `SHA256SUMS` + 在
-`src/fixtures.test.ts` 登记 import 与注册表条目（无需改任何份数字），详见 `docs/fixtures.md`。
+`src/fixtures.test.ts` 登记 import 与注册表条目（无需改任何份数字），详见 `docs/protocol/fixtures.md`。
 
 ## 代码风格（biome 已强制，手动也须遵守）
 
@@ -57,9 +59,9 @@ pnpm gate               # 提交前门禁（唯一权威）：check+test+build+v
 
 ## 实现模式
 
-- **协议演进**：先读 `docs/changelog.md` 的 bump 规则（主版本兼容区间协商、breaking = 握手子协议字符串），
+- **协议演进**：先读 `docs/protocol/versioning.md` 的 bump 规则（主版本兼容区间协商、breaking = 握手子协议字符串），
   判定本次变更是 patch / minor / major，再按四件套同改落地。
 - **新帧落地顺序**：schema（`src/messages/ws.ts`）→ 单测（对齐 `*.test.ts` 正反用例风格）→
-  peer-guide 帧目录 → fixtures 金样本 → changelog 条目。
+  `docs/protocol/frames.md` 帧目录 → fixtures 金样本 → `docs/protocol/versioning.md` 条目。
 - **IPC 帧（`src/messages/ipc.ts`）**：属主仓 KuroAdapter 全量线（Java 薄壳 ↔ Node 子进程）专用命名空间，
   本仓只托管 schema；纯净线（KuroAdapter-Pure）不消费。

@@ -1,5 +1,5 @@
 /**
- * 金样本夹具一致性门禁（docs/fixtures.md）—— validateFixture 的第一消费方（ADR-002）
+ * 金样本夹具一致性门禁（docs/protocol/fixtures.md）—— validateFixture 的第一消费方（ADR-002）
  *
  * 契约校验逻辑（fixtureSchema 元 schema、reject.stage 声明一致性、accept/reject × wire/dispatch
  * 三分支、behavior.reply 引用）已平移提炼为 src/fixtures.ts 的纯函数 validateFixture（可分发导出），
