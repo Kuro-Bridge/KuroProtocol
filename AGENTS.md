@@ -37,9 +37,17 @@ pnpm fix                # biome 自动修复 + tsc
 pnpm test               # vitest run（协议单测 + 夹具一致性门禁）
 pnpm build              # tsdown 双格式构建（dist/index.mjs + dist/index.cjs，ADR-001）
 pnpm gate               # 提交前门禁（唯一权威）：check+test+build+verify:fixtures+verify:version+verify:docs
+pnpm verify:release     # 发布前终验（版本锚 / 夹具目录 / 版本史行 / npm pack 发布件清单；依赖 build）
 ```
 
-发布：**只能从本仓出**（`pnpm publish`，`publishConfig.access=public` 与 CJS 双格式产物已就位）。
+`verify:release` 必须在 `pnpm gate`（含 build）之后跑；`pnpm verify:trust` 只在发布链的
+publish 环（有 `id-token: write`）有意义，本地会直接拒绝。
+
+发布：**只能从本仓出、且只经 `.github/workflows/release.yml`**（npm 可信发布 / OIDC，
+`release` environment 审批，仓内无长期 token；构建期代码与 token 分 job）。push main 时若
+`package.json` 版本尚未上架即触发，registry 比对保证幂等；版本 ≡ 协议版本由四件套手写，
+**不引入 changesets**。environment / npm 信任配置 / ruleset 等一次性前置与排障见
+`docs/guides/release.md`。
 **已发布**：0.4.0（2026-09-18T11:17Z 上架 npmjs，latest）；npm 旧线 0.1.0（拆仓前夜从主仓
 误发，两轴错位、exports 缺 require）已 deprecate。后续发布按 `docs/guides/release.md` 手册重走，
 背景与事故记录见 `docs/architecture/decisions.md` ADR-001。
