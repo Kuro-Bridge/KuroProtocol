@@ -1,5 +1,5 @@
 /**
- * 金样本夹具契约校验（docs/fixtures.md；从 src/fixtures.test.ts 平移提炼，ADR-002 选 C）
+ * 金样本夹具契约校验（docs/protocol/fixtures.md；从 src/fixtures.test.ts 平移提炼，ADR-002 选 C）
  *
  * 契约语义摘要（accept/reject × wire/dispatch 三分支 + behavior 引用）：
  * - 元 schema（fixtureSchema）：name/note/source、frames[{dir, frame}].min(1)、expect 三段
@@ -12,7 +12,7 @@
  *   （被引用的回执帧本身放在 frames 里，同样被 schema 门禁覆盖）。
  *
  * 行为语义（close code/reason 与 reply 帧的实跑验证）不在此层——协议包只承载期望声明，
- * 执行归各消费方（docs/fixtures.md「behavior 仅校验形状」边界维持不变）。
+ * 执行归各消费方（docs/protocol/fixtures.md「behavior 仅校验形状」边界维持不变）。
  * 零 Node API：仅依赖 zod 与本仓 schema（tsconfig types:[]，ADR-002）。
  */
 import { z } from "zod";
@@ -21,7 +21,7 @@ import { wsInboundFrame, wsOutboundFrame } from "./messages/ws.js";
 
 const REPLY_REF = /^frames\[(\d+)\]$/;
 
-/** 金样本元 schema：字段全表与约定见 docs/fixtures.md */
+/** 金样本元 schema：字段全表与约定见 docs/protocol/fixtures.md */
 export const fixtureSchema = z.object({
     name: z.string().min(1),
     note: z.string().min(1),

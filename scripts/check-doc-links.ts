@@ -6,9 +6,8 @@
  * 存在（目录也算过）；有死链即输出「文件:行号 → 路径」清单并 exit 1。
  *
  * 纪律出处（Koishi-CE）：docs ↔ code 机械联动——文档引用的仓内路径必须真实存在，
- * 防止文件改名/搬迁后文档无声腐烂。2026-09-17 实证：全仓唯一真实死链是
- * src/index.ts:8 的 docs/protocol/peer-guide.md（历史包布局残留，并行修复中）；
- * 其余不存在的 token 均为跨仓引用，见下方豁免清单（每条带证据）。
+ * 防止文件改名/搬迁后文档无声腐烂。跨仓引用不检查，逐条登记在豁免清单（每条带理由）。
+ * 2026-10 文档重构后仅存一类跨仓引用：src 注释保留的主仓历史草案目录（docs/history/）。
  *
  * 零 npm 依赖（仅 Node 内建）；只经 npm scripts 调用，无需 shebang。仓根由
  * import.meta.url 推导，不依赖 cwd。dist/、node_modules 等构建产物不在提取模式的
@@ -34,19 +33,9 @@ interface Exemption {
  */
 const EXEMPTIONS: readonly Exemption[] = [
     {
-        // 主仓 KuroAdapter 的历史文档目录（本仓 docs/ 扁平无子目录）。引用处均带平移
-        // 出处头或「主仓」限定：docs/design.md L3-6、docs/changelog.md L5、src/frame.ts
-        // / src/index.ts / src/messages/ws.ts 的历史出处注释。
+        // 主仓 KuroAdapter 的历史文档目录：src 注释保留的历史草案出处引用
+        // （src/index.ts / src/frame.ts / src/messages/ws.ts 指向主仓 docs/history/draft-v0.1.md）。
         match: /^docs\/history\//,
-    },
-    {
-        // KuroAdapter-Pure 仓文件：docs/BOOTSTRAP-NOTES.md:4 明确限定「其 docs/STATUS.md」。
-        match: /^docs\/STATUS\.md$/,
-    },
-    {
-        // 主仓 KuroAdapter 的镜像门禁脚本（跨仓固定引用：docs/DECISIONS.md ADR-001、
-        // docs/MIRROR-RESYNC.md、docs/RELEASE.md 协同节均指主仓侧该脚本），本仓无此文件。
-        match: /^scripts\/check-protocol-mirror\.mjs$/,
     },
 ];
 

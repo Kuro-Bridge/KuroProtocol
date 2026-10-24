@@ -7,7 +7,7 @@
  * 出处：长程线 1/3 块 D（2026-09-17）——把 ADR-001 发布纪律「包版本 ≡ 协议版本」的
  * 版本锚从纯人工核对升级为机器断言。此前唯一相关测试只查格式正则
  * （src/index.test.ts L17-20），包版本与协议版本两轴错位（npm 0.1.0 事故形态，
- * 见 docs/DECISIONS.md ADR-001）检测不到。
+ * 见 docs/architecture/decisions.md ADR-001）检测不到。
  *
  * 零 npm 依赖（仅 Node 内建）；只经 npm scripts 调用，无需 shebang。仓根由
  * import.meta.url 推导（脚本位于 scripts/ 下），不依赖 cwd。
