@@ -40,3 +40,30 @@
 - **脚本双模式自动降级**：仓内运行 = 三方一致（fixtures 目录 ↔ `SHA256SUMS` ↔ 测试注册表，
   另加逐文件 sha256 实算）；包内运行 = 两方（目录 ↔ `SHA256SUMS`）。版本目录由包 version 推导
   （`0.4.0` → `v0.4`），把「包版本 ↔ 目录」锚进机器。
+
+## ADR-004 发布流水线：OIDC 可信发布 + environment 审批（2026-10-24）
+
+0.4.0 之前的发布是人工手册（gate → 本机 `pnpm publish` → tag），发布权落在一个长期 npm
+登录态上；协议包一旦上架不可撤回，而版本号是手写四件套的一部分，没有 changeset 那种「可审的
+版本 diff」。
+
+- **结论**：发布改由 `.github/workflows/release.yml` 承担，三段式：`prepare`（检测 → `pnpm gate`
+  → `pnpm verify:release` → 打包 artifact，无 `id-token`）→ `publish`（`environment: release`
+  审批 + `id-token: write`，只解包 + 预检 + `npm publish --ignore-scripts`）→ `tag`
+  （`contents: write` 打 `v<version>`）。发布条件 =「main 上的 `package.json` 版本不在
+  registry」，registry 比对使重跑幂等。
+- **不引入 changesets**：本仓版本 ≡ 协议版本，bump 由四件套手写并与 `PROTOCOL_VERSION` 机器
+  锚定；changeset 的自动 bump 会与 `verify:version` 及「版本即契约」语义冲突。
+- **不引入 GitHub App / 版本提交**：没有自动写 main 的动作（版本提交就是协议变更提交本身），
+  因此不需要 installation token 与 ruleset bypass；发布权收敛为「能 push main + 能过
+  environment 审批」。
+- **保留 environment（尽管本仓不接受外部 PR）**：它承担两件事——① 不可逆上架前的人工闸
+  （协议版本不可撤回、下游按版本 pin，审批前先看 `verify:release` 的四项机器证据）；② 把
+  OIDC 签发钉死在 main（deployment branch policy 是约束 ref 的机制；npm 的 claim 只绑
+  repo + workflow 文件 + environment）。单维护者可自审，故它是「停顿 + 被窃 token 的告警」，
+  不是「第二双眼睛」；减摩擦时可只删 Required reviewers、保留 environment 与分支策略。
+- **代价**：每次发布多一次审批点击；npm 信任配置 2 天内必须完成首发，使「配配置」与「发版本」
+  必须同行；artifact 保留 30 天，审批拖过期需 dispatch 重跑（registry 比对保证幂等）。
+- **现行落点**：流水线与排障见[发布手册](../guides/release.md)；版本锚、夹具锚、版本史行与
+  发布件清单由 `scripts/verify-release.ts`（`pnpm verify:release`）机器校验。
+

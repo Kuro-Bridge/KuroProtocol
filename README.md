@@ -56,7 +56,7 @@ KuroBridge 生态（协议视角）
 | **规格书** | [`docs/protocol/`](docs/README.md) | 跨仓对端接入规格：连接生命周期（lifecycle）、帧目录（frames）、IPC 内部通道（ipc）、版本模型（versioning） |
 | **金样本** | `fixtures/v0.4/` | 16 份行为样本 + `SHA256SUMS`，随 npm 包分发的物理契约（格式见 [`docs/protocol/fixtures.md`](docs/protocol/fixtures.md)） |
 | **沿革** | [`docs/protocol/versioning.md`](docs/protocol/versioning.md) | 协议 0.1 → 0.4.0 简史与 bump 规则 |
-| **决策** | [`docs/architecture/decisions.md`](docs/architecture/decisions.md) | ADR-001~003 结论（SSOT 收口、发布线唯一、金样本分发） |
+| **决策** | [`docs/architecture/decisions.md`](docs/architecture/decisions.md) | ADR-001~004 结论（SSOT 收口、发布线唯一、金样本分发、OIDC 发布流水线） |
 
 版本协商与兼容：`hello` 期对表 `protocolVersion`，主版本号相同即兼容（`isProtocolVersionCompatible`，如 0.2.0 对端可连 0.4.0 服务端）；旧名 `kurobot-ws` 自 0.4.0 起握手期拒绝，无双名兼容。
 
@@ -126,11 +126,16 @@ pnpm gate           # 提交前唯一权威门禁：check + test + build + 夹�
 > **四件套同改**：任何协议变更 = 一次提交同时改齐 ① `src/` schema ② `docs/protocol/` 规格文档 ③ `fixtures/` 金样本 ④ `docs/protocol/versioning.md`。缺一即门禁红。
 
 > [!CAUTION]
-> **`src/` 零 Node API**：协议包必须在任意 JS 运行时可用；包版本 ≡ 协议版本，发布只能从本仓出（操作手册见 [`docs/guides/release.md`](docs/guides/release.md)）。完整约束见 [AGENTS.md](AGENTS.md)。
+> **`src/` 零 Node API**：协议包必须在任意 JS 运行时可用；包版本 ≡ 协议版本，发布只能从本仓出、
+> 且只经 `.github/workflows/release.yml`（OIDC 可信发布 + `release` environment 审批，无长期
+> token；操作手册见 [`docs/guides/release.md`](docs/guides/release.md)）。完整约束见 [AGENTS.md](AGENTS.md)。
 
 ## 发布状态
 
 - **现行**：`@kuro-bridge/protocol@0.4.0`（npm `latest`，2026-09-18 上架），tag `v0.4.0` 已推远端。
+- **发布线**：`.github/workflows/release.yml`——push main 的提交若携带未上架版本，经 `prepare`
+  门禁与发布件终验后停在 `release` environment 审批，批准后由 OIDC 上架并自动打 tag；仓内不存
+  任何 npm token。细节见[发布手册](docs/guides/release.md)。
 - **旧线**：`0.1.0`（2026-09-15 拆仓前夜自主仓 `bridge/protocol` 误发：包版本与内嵌协议版本错位、exports 缺 require）已 deprecate。
 - 背景与事故记录见 [`docs/architecture/decisions.md`](docs/architecture/decisions.md) ADR-001。
 

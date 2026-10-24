@@ -12,13 +12,14 @@ schema 冲突时以 schema 为准并回改文档（AGENTS.md 硬性约束）。
 | 演进协议、判断版本 bump | [版本模型与 bump 规则](protocol/versioning.md) |
 | 消费 / 维护金样本 | [金样本契约](protocol/fixtures.md) |
 | 理解本包结构与设计 | [架构总览](architecture/overview.md)、[决策档案](architecture/decisions.md) |
-| 发布新版本 | [发布手册](guides/release.md) |
+| 发布新版本（OIDC 流水线） | [发布手册](guides/release.md) |
 
 ## 仓库地图
 
 - `src/` —— zod schema SSOT（`meta` / `frame` / `messages/ws` / `messages/ipc` / `fixtures` / `index`）
 - `fixtures/v0.4/` —— 16 份金样本 + `SHA256SUMS`，随 npm 包分发的物理契约
 - `scripts/` —— 门禁脚本（金样本三方校验、版本锚、文档死链），盘点见 [scripts/readme.md](../scripts/readme.md)
+- `.github/workflows/` —— CI 门禁（`ci.yml`）与发布流水线（`release.yml`：prepare → publish（OIDC + environment 审批）→ tag）
 - 工作流与硬性约束见仓库根 [AGENTS.md](../AGENTS.md)
 
 ## 旧文档去向

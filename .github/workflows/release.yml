@@ -1,0 +1,241 @@
+# 发布流水线（npm 可信发布 / OIDC）
+#
+# 形态：三段式，按「能不能换到 OIDC token」切分——只有 publish 持 `id-token: write`
+# 且挂 `environment: release` 审批。动机：npm 的可信发布把发布权授给「谁能让本文件在
+# main 上跑起来」，因此**构建期可执行的代码绝不能与 OIDC token 同处一个 job**。
+# package.json 的脚本、tsdown 配置、pnpm 依赖的 postinstall 都是构建期代码。
+#
+#   prepare  检测版本是否已上架 → 门禁 → 构建 → 发布件终验 → 打包 artifact
+#            （contents: read，**无** id-token）
+#   publish  解包 artifact → 预检 npm 信任配置 → npm publish
+#            （id-token: write + environment 审批，**无** contents 写权限）
+#   tag      打 `v<version>` 注释 tag 并推送（contents: write，**无** id-token）
+#
+# 与 NapukettoQQ 的发布链相比刻意少了两样东西，因为本仓的发布形态不同：
+#   · 没有 changesets / 自动版本提交：本仓版本 ≡ 协议版本，版本号是四件套手写的一部分
+#     （package.json ≡ src/meta.ts，verify:version 机器锚定），不存在「由 changeset 计算
+#     版本再提交回 main」的环节。故**不需要 GitHub App、不需要 bypass 规则集**，发布权
+#     收敛为「能 push main + 能过 environment 审批」。
+#   · 没有 `skip-version`：发布条件是「main 上的版本不在 registry」，重跑天然幂等，
+#     registry 比对决定要不要发，补发直接 workflow_dispatch。
+#
+# 为什么不要外部 PR 仍保留 environment：
+#   1. 协议版本是公开、不可撤回的契约（下游按版本 pin，npm unpublish 只留 72 小时窗口），
+#      审批是「不可逆动作」前唯一的人工停顿；
+#   2. 版本号手写在四件套里，没有 changeset 那种「可审的版本 diff」——审批页配合 prepare
+#      的 verify:release 输出（版本 / 夹具目录 / 版本史行 / 发布件清单）才是完整证据；
+#   3. environment 的 deployment branch policy 是把 OIDC 签发**钉死在 main** 的机制：
+#      npm 的 claim 只绑 repo + workflow 文件 + environment，不绑分支；workflow_dispatch
+#      是在被 dispatch 的 ref 上取工作流文件的。没有这一层，有写权限者可在分支上改本文件
+#      后 dispatch，借 environment 拿 OIDC。
+# 单维护者可自审，所以它是「停顿 + 被窃 token 的告警」，不是「第二双眼睛」。
+# 若要去掉摩擦：可只删 Required reviewers、保留 environment 与分支策略；不要连
+# environment 一起删（claim 与分支门禁会同时消失）。详见 docs/guides/release.md §3.1。
+#
+# 前置（均为仓库 / npm 侧设置，非代码；逐条见 docs/guides/release.md §3）：
+#   1. Settings → Environments 建 `release`，勾 Required reviewers、关闭管理员 bypass、
+#      Deployment branches 限制为 main。名字必须与 npm 信任配置的 environment claim 严格同名。
+#   2. npm 侧该包的信任配置：repository=Kuro-Bridge/KuroProtocol、workflow=release.yml、
+#      environment=release、权限只含 publish。**逐包配置**；建成后 2 天内必须完成首发。
+#   3. ruleset 保护 main 与 `v*` tag（禁删除 / 禁非快进），发布件与 git 历史才一致。
+
+name: Release
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+# 严禁并发：两个运行同时走到 publish 会撞同一个版本号（npm 只允许一次成功）。
+concurrency:
+    group: release
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+jobs:
+    prepare:
+        name: prepare（检测版本 → 门禁 → 构建 → 打包）
+        runs-on: ubuntu-24.04
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        outputs:
+            needed: ${{ steps.detect.outputs.needed }}
+            name: ${{ steps.detect.outputs.name }}
+            version: ${{ steps.detect.outputs.version }}
+        steps:
+            # 本 job 不推送任何东西（版本提交就是触发本次运行的提交本身），
+            # 因此不必留 checkout 凭证。
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            # 先做一次廉价的 registry 比对：版本已上架则整个发布链空转退出，
+            # 不安装依赖、不跑门禁（门禁由 ci.yml 在每次 push 上照常跑）。
+            - id: detect
+              name: 检测是否有未发布的版本
+              run: |
+                  name=$(node -p "require('./package.json').name")
+                  version=$(node -p "require('./package.json').version")
+                  echo "name=$name" >> "$GITHUB_OUTPUT"
+                  echo "version=$version" >> "$GITHUB_OUTPUT"
+                  if npm view "$name@$version" version >/dev/null 2>&1; then
+                      echo "needed=false" >> "$GITHUB_OUTPUT"
+                      echo "::notice::$name@$version 已在 registry，跳过构建与发布"
+                      exit 0
+                  fi
+                  echo "needed=true" >> "$GITHUB_OUTPUT"
+                  echo "::notice::$name@$version 未发布，进入门禁、构建与审批"
+
+            - if: steps.detect.outputs.needed == 'true'
+              run: corepack enable
+
+            - if: steps.detect.outputs.needed == 'true'
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 26 # 对齐 mise.toml
+                  cache: pnpm
+
+            - if: steps.detect.outputs.needed == 'true'
+              name: 安装依赖
+              run: pnpm install --frozen-lockfile
+
+            # 唯一权威门禁，与本地 pnpm gate 同构：check+test+build+夹具三方一致+
+            # 版本锚+死链检查。构建产物 dist 由此产生，供后面的发布件终验与发布使用。
+            - if: steps.detect.outputs.needed == 'true'
+              name: 全量门禁（pnpm gate）
+              run: pnpm gate
+
+            # 发布链专属终验：版本锚 / fixtures 目录 / 版本史行 / npm pack 清单。
+            # 输出会留在运行日志里，作为 environment 审批时的机器证据。
+            - if: steps.detect.outputs.needed == 'true'
+              name: 发布件终验（pnpm verify:release）
+              run: pnpm verify:release
+
+            # 打包整棵工作区（排除 node_modules 与 .git）：publish 环据此发布，
+            # 不重新安装、不重新构建。
+            - if: steps.detect.outputs.needed == 'true'
+              name: 打包工作区
+              run: tar --exclude=./node_modules --exclude=./.git -czf "$RUNNER_TEMP/release-package.tgz" .
+
+            # retention 必须长于「等人工审批」这段不可控时长。30 天 = 仓库默认；
+            # 过短会在审批通过时埋掉产物，只能 dispatch 重跑（registry 比对保证幂等）。
+            - if: steps.detect.outputs.needed == 'true'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: release-package
+                  path: ${{ runner.temp }}/release-package.tgz
+                  retention-days: 30
+
+    publish:
+        name: publish（OIDC 发包，需 environment 审批）
+        needs: prepare
+        if: needs.prepare.outputs.needed == 'true'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 20
+        # 与 npm 信任配置的 environment claim 同名；Required reviewers 在这里生效，
+        # 这是「合并 ≠ 上线」的唯一结构性保证。用对象形式而非简写：编辑器 schema
+        # 对 `environment: release` 简写有误报。
+        environment:
+            name: release
+        permissions:
+            contents: read
+            id-token: write # OIDC：换包级短时 token + 自动 provenance
+        steps:
+            - name: Setup Node
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 26
+
+            # OIDC 可信发布需 npm ≥ 11.5.1；runner 自带的 npm 版本随 Node 镜像漂移，
+            # 这里显式装 11 到用户级 prefix（系统级 /usr/local 属 root，install -g 会 EACCES）。
+            - name: 升级 npm（OIDC 发布需 npm ≥ 11.5.1）
+              run: |
+                  npm install -g npm@11 --prefix "$HOME/.npm-global"
+                  echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+
+            - name: 确认 npm 版本
+              run: npm --version
+
+            - uses: actions/download-artifact@v8
+              with:
+                  name: release-package
+                  path: ${{ runner.temp }}
+
+            - name: 解包到工作区
+              run: |
+                  mkdir -p "$GITHUB_WORKSPACE"
+                  tar -xzf "$RUNNER_TEMP/release-package.tgz" -C "$GITHUB_WORKSPACE"
+
+            # artifact 只是载体：发布前确认它确实是被检测、被门禁、被审批的那一份。
+            - name: 校验发布件身份
+              working-directory: ${{ github.workspace }}
+              env:
+                  EXPECTED_NAME: ${{ needs.prepare.outputs.name }}
+                  EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
+              run: |
+                  name=$(node -p "require('./package.json').name")
+                  version=$(node -p "require('./package.json').version")
+                  if [ "$name" != "$EXPECTED_NAME" ] || [ "$version" != "$EXPECTED_VERSION" ]; then
+                      echo "::error::发布件身份不符：$name@$version ≠ 检测阶段的 $EXPECTED_NAME@$EXPECTED_VERSION"
+                      exit 1
+                  fi
+
+            # 换 token 预检：404 = 没配 / claim 不符 / 已失效，在 npm publish 之前
+            # 就把这条原因明确打印出来（npm CLI 只在 verbose 里记一句再静默退回无凭证）。
+            - name: 预检 npm 信任配置
+              working-directory: ${{ github.workspace }}
+              run: node scripts/verify-trust.ts
+
+            # --ignore-scripts：publish 环绝不执行仓库里的生命周期脚本（构建期代码不
+            # 进持 token 的 job）。本包没有 prepublishOnly / prepare，这里是防御性约束。
+            # NPM_CONFIG_LOGLEVEL=verbose：OIDC 每个失败分支都只写 verbose 日志，不开
+            # 就只剩 ENEEDAUTH；token 只在请求头，不会落日志。
+            - name: 发布
+              working-directory: ${{ github.workspace }}
+              env:
+                  NPM_CONFIG_LOGLEVEL: verbose
+              run: npm publish --access public --ignore-scripts
+
+    tag:
+        name: tag（打发布 tag）
+        needs: [prepare, publish]
+        if: needs.prepare.outputs.needed == 'true' && needs.publish.result == 'success'
+        runs-on: ubuntu-24.04
+        timeout-minutes: 10
+        permissions:
+            contents: write # 只用于推 tag；本 job 不持 id-token
+        steps:
+            # 用触发本次发布的 commit 本身，而不是「此刻的 main」：发布件构建自
+            # github.sha，tag 必须指向同一棵树。
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+                  ref: ${{ github.sha }}
+
+            # tag 由流水线生成，提交身份用 GitHub Actions bot，不用维护者邮箱。
+            - name: 配置 git 身份（GitHub Actions bot）
+              run: |
+                  git config user.name 'github-actions[bot]'
+                  git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+            # 幂等：重跑（补发分支）时 tag 可能已在——同 tag 且同 commit 就跳过；
+            # 指向别的 commit 则红退，交给人工核对（不能把发布 tag 悄悄指错树）。
+            - name: 创建并推送 tag
+              env:
+                  VERSION: ${{ needs.prepare.outputs.version }}
+              run: |
+                  tag="v$VERSION"
+                  if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+                      tagged=$(git rev-list -n 1 "$tag")
+                      if [ "$tagged" != "$(git rev-parse HEAD)" ]; then
+                          echo "::error::tag $tag 已存在并指向 $tagged，与本次发布的 $(git rev-parse HEAD) 不同，请人工核对"
+                          exit 1
+                      fi
+                      echo "::notice::tag $tag 已存在且指向本次 commit，跳过"
+                      exit 0
+                  fi
+                  git tag -a "$tag" -m "发布 @kuro-bridge/protocol@$VERSION（包版本 ≡ 协议版本）"
+                  git push origin "refs/tags/$tag"

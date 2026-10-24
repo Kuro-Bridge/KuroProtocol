@@ -6,6 +6,10 @@
     "description": "kurobridge-ws 协议的家：zod schema SSOT + 规格书 + 金样本夹具（包版本 ≡ 协议版本）",
     "type": "module",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Kuro-Bridge/KuroProtocol.git"
+    },
     "files": [
         "dist",
         "fixtures",
@@ -46,6 +50,8 @@
         "verify:fixtures": "node scripts/verify-fixtures.ts",
         "verify:version": "node scripts/assert-version.ts",
         "verify:docs": "node scripts/check-doc-links.ts",
+        "verify:release": "node scripts/verify-release.ts",
+        "verify:trust": "node scripts/verify-trust.ts",
         "gate": "pnpm check && pnpm test && pnpm build && pnpm verify:fixtures && pnpm verify:version && pnpm verify:docs"
     },
     "dependencies": {
