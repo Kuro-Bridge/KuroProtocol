@@ -1,7 +1,7 @@
 # 版本模型与 bump 规则
 
 > 版本 SSOT：`src/meta.ts` 的 `PROTOCOL_VERSION`；**包版本 ≡ 协议版本**（`package.json` 的
-> `version` 与之恒等，`pnpm verify:version` 机器锚定）。现行 0.4.0（npm latest）。
+> `version` 与之恒等，`pnpm verify:version` 机器锚定）。现行 0.4.1（npm latest）。
 
 ## 双层版本模型
 
@@ -24,6 +24,7 @@
 | 新增帧 / 行为变更 | minor | 0.2.0、0.3.0 |
 | 可选字段追加且无行为分支 | patch | 0.2.1（ready.autoRestart）、0.3.1（hello.client） |
 | 握手层 breaking（子协议字符串变更） | 0.x 语境下 minor 即对外信号 | 0.4.0（`kurobot-ws` → `kurobridge-ws`，唯一 breaking，帧形状零变化） |
+| 发布件 / 包元数据 / 发布链修复（线协议零变更） | patch | 0.4.1（bin 切 TS、补 `repository`、OIDC 发布链） |
 
 **安全网**：未知帧两段式容忍（未知请求帧回 `<type>_result {ok:false, error:"unknown frame
 type"}`、未知事件帧忽略、未知 `_result` 不回执防乒乓）+ body 未知键剥离——服务端可先于对端
@@ -41,6 +42,7 @@ type"}`、未知事件帧忽略、未知 `_result` 不回执防乒乓）+ body �
 | （无 bump） | 2026-09-14 | MVP-4 | napuketto CLI 嵌入（ADR-029）——协议 0.3.1 **一字不动**；QR 登录走文件交接，主动放弃 IPC 帧方案（即不做 0.3.2） | MVP4-NOTES |
 | **0.4.0** | 2026-09-14 | 改名 | **Breaking（唯一）**：握手子协议 `kurobot-ws.v1` → `kurobridge-ws.v1`、`PROTOCOL_NAME` 同步改名（品牌迁移 KuroBot → KuroBridge，ADR-030）。`.v1` 大版本不变，**帧 schema 形状零变化**；one-name-only——旧名对端握手期直接拒绝，不做双名兼容、不做自动迁移。npm scope 同步 `@kurobot/*` → `@kuro-bridge/*` | ADR-030、RENAME-NOTES |
 | （拆仓） | 2026-09-15 | KuroProtocol | 本仓建立：自主仓 `59d3be7` 平移（协议内容零改动），接管协议演进；包 `@kuro-bridge/protocol` 版本对齐 **0.4.0** | 本仓决策档案 ADR-001 |
+| **0.4.1** | 2026-10-24 | 发布工程 | 发布件与元数据修复：bin 切 TS 源码分发（Node ≥ 22.18 类型擦除）、补 `repository`（provenance 校验必需）、发布链改 OIDC 可信发布（ADR-004）。**线协议零变更**：schema / 帧目录 / 金样本均不动，`fixtures/v0.4/` 继续有效 | 本仓 ADR-004 |
 
 0.1.0 → 0.4.0 的演进发生在主仓 KuroAdapter（出处列的 ADR 编号与阶段册均指主仓台账，见
 `src/meta.ts` 版本史注释）；本仓自 0.4.0 起接管协议演进。
