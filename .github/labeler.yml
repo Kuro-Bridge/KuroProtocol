@@ -1,0 +1,60 @@
+# PR 自动打标配置（actions/labeler v5，由 triage workflow 消费）。
+#
+# 仅覆盖「范围」与「文档 / 工具链」维度：类型标签由 issue 模板自带，
+# 优先级 / 破坏性 / 状态维度由维护者手动维护。glob 未命中时不出标签；
+# sync-labels 关闭，只增不减，手动摘除不会被后续 push 加回。
+#
+# 前导 / 锚定仓库根级文件（否则会匹配到子目录内的同名文件）。
+# schema 只锚帧与字段的四个源文件：动 ipc.ts 的 PR 单独打 module: ipc，
+# 不再误挂 module: schema。protocol-change（四件套同改）是语义维度，
+# 路径规则探测不到，由维护者手动挂。
+
+"module: schema":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "/src/meta.ts"
+          - "/src/frame.ts"
+          - "/src/messages/ws.ts"
+
+"module: ipc":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "/src/messages/ipc.ts"
+
+"module: fixtures":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "/src/fixtures.ts"
+          - "fixtures/**"
+
+"module: peer-guide":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "/docs/peer-guide.md"
+
+"documentation":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+
+"chore":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/**"
+          - "/*.json*"
+          - "/tsconfig.json"
+          - "/tsdown.config.ts"
+          - "/vitest.config.ts"
+          - "/biome.jsonc"
+          - "/mise.toml"
+          - "/pnpm-workspace.yaml"
+
+"dependencies":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "/pnpm-lock.yaml"
+
+"ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"

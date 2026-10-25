@@ -1,0 +1,61 @@
+# Bug 报告模板：类型标签 bug 自带，范围留给正文描述，模块由维护者补挂。
+
+name: Bug 报告
+description: 报告协议契约包 @kuro-bridge/protocol 的问题
+title: "Bug: "
+labels:
+  - bug
+body:
+  - type: dropdown
+    attributes:
+      label: 受影响的范围
+      description: 问题落在哪个域；涉及多个时在补充信息里说明。
+      options:
+        - 帧与字段 schema（src/）
+        - IPC 帧（src/messages/ipc.ts）
+        - 金样本（fixtures/）
+        - 对端接入规格书（docs/peer-guide.md）
+        - npm 包本身
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 问题描述
+      description: 请简明扼要地描述遇到了什么问题。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 复现步骤
+      description: 请描述如何触发这个问题，越具体越好，最好附最小schema或帧样例。
+      placeholder: |
+        1. 引入 '...' 后解析 '...'
+        2. 发送帧 '...'
+        3. 观察到 '...'
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 期望行为
+      description: 请描述你期望发生的行为。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 相关输出与截图
+      description: 请附上校验报错、解析输出或相关截图，用代码块包裹。
+  - type: textarea
+    attributes:
+      label: 运行环境
+      description: 请填写运行环境的版本信息。
+      value: |
+        - Node 版本: <!-- 例如 26 -->
+        - @kuro-bridge/protocol 版本: <!-- 例如 0.4.0 -->
+        - 消费方与版本: <!-- 例如 KuroAdapter 0.1.0 / KuroAdapter-Pure 0.1.0 / koishi-plugin-kurobridge 0.2.0 -->
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 补充信息
+      description: 其他需要补充的上下文，例如相关帧的 JSON（注意隐去 token 等敏感信息）。
